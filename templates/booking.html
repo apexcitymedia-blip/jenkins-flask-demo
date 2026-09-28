@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment | BarberBook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <div class="logo">BARBERBOOK</div>
+    <a href="/" class="nav-button">Home</a>
+</nav>
+
+<section class="booking-section">
+
+    <div class="booking-card">
+
+        <p class="eyebrow">BOOK YOUR VISIT</p>
+        <h1>Make an Appointment</h1>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="service">Service</label>
+            <select id="service" name="service" required>
+                <option value="">Select a service</option>
+                <option value="Haircut">Haircut - $25</option>
+                <option value="Beard Trim">Beard Trim - $15</option>
+                <option value="Hair + Beard">Hair + Beard - $35</option>
+            </select>
+
+            <label for="barber">Barber</label>
+            <select id="barber" name="barber" required>
+                <option value="">Select a barber</option>
+                <option value="Alex">Alex</option>
+                <option value="Mike">Mike</option>
+                <option value="James">James</option>
+            </select>
+
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="time">Time</label>
+            <input type="time" id="time" name="time" required>
+
+            <button type="submit" class="button full-width">
+                Confirm Appointment
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+</body>
+</html>

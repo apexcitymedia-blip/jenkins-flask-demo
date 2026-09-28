@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Confirmed | BarberBook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <div class="logo">BARBERBOOK</div>
+</nav>
+
+<section class="confirmation">
+    <div class="confirmation-card">
+
+        <div class="check">✓</div>
+
+        <p class="eyebrow">APPOINTMENT RECEIVED</p>
+        <h1>You're Booked, {{ name }}!</h1>
+
+        <p>Your appointment request has been received.</p>
+
+        <div class="appointment-details">
+            <p><strong>Service:</strong> {{ service }}</p>
+            <p><strong>Barber:</strong> {{ barber }}</p>
+            <p><strong>Date:</strong> {{ date }}</p>
+            <p><strong>Time:</strong> {{ time }}</p>
+        </div>
+
+        <a href="/" class="button">Back to Home</a>
+
+    </div>
+</section>
+
+</body>
+</html>
