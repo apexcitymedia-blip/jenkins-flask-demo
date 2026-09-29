@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarberBook - Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">BARBERBOOK</div>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/book">Book Appointment</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="booking-section">
+            <h1>Appointment Dashboard</h1>
+            <p>Manage BarberBook appointments.</p>
+
+            {% if appointments %}
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Service</th>
+                                <th>Barber</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment["id"] }}</td>
+                                <td>{{ appointment["name"] }}</td>
+                                <td>{{ appointment["email"] }}</td>
+                                <td>{{ appointment["service"] }}</td>
+                                <td>{{ appointment["barber"] }}</td>
+                                <td>{{ appointment["date"] }}</td>
+                                <td>{{ appointment["time"] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>No appointments yet.</p>
+            {% endif %}
+        </section>
+    </main>
+
+</body>
+</html>

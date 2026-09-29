@@ -48,3 +48,43 @@ def test_incomplete_booking():
 
     assert response.status_code == 400
     assert b"Please complete all fields." in response.data
+
+
+def test_booking_is_saved():
+    client = app.test_client()
+
+    response = client.post(
+        "/book",
+        data={
+            "name": "Jane",
+            "email": "jane@example.com",
+            "service": "Beard Trim",
+            "barber": "Mike",
+            "date": "2026-10-02",
+            "time": "14:00",
+        },
+    )
+
+    assert response.status_code == 200
+
+    import sqlite3
+
+    conn = sqlite3.connect("barberbook.db")
+    appointment = conn.execute(
+        """
+        SELECT name, email, service, barber, date, time
+        FROM appointments
+        WHERE name = ?
+        """,
+        ("Jane",)
+    ).fetchone()
+    conn.close()
+
+    assert appointment == (
+        "Jane",
+        "jane@example.com",
+        "Beard Trim",
+        "Mike",
+        "2026-10-02",
+        "14:00",
+    )
