@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request
 import sqlite3
+import os
 
 app = Flask(__name__)
 
-DATABASE = "barberbook.db"
+DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
 
 
 def get_db_connection():
