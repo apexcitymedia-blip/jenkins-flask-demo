@@ -48,12 +48,18 @@ pipeline {
 }
 
         stage('Verify Deployment') {
-            steps {
-                sh '''
-                    sleep 3
-                    curl -f http://localhost:5000/
-                '''
+    steps {
+        sh '''
+            sleep 3
+
+            curl -f http://localhost:5000/
+
+            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' jenkins-demo)
+
+            echo "Container health status: $HEALTH"
+
+            test "$HEALTH" = "healthy"
+        '''
             }
-        }
     }
 }
