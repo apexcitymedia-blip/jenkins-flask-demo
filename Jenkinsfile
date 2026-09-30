@@ -33,33 +33,34 @@ pipeline {
         }
 
         stage('Deploy') {
-    steps {
-        sh '''
-            docker volume create barberbook-data
-            docker rm -f jenkins-demo 2>/dev/null || true
-            docker run -d \
-                --name jenkins-demo \
-                -p 5000:5000 \
-                -e DATABASE_PATH=/data/barberbook.db \
-                -v barberbook-data:/data \
-                jenkins-demo:latest
-        '''
-    }
-}
+            steps {
+                sh '''
+                    docker volume create barberbook-data
+                    docker rm -f jenkins-demo 2>/dev/null || true
+                    docker run -d \
+                        --name jenkins-demo \
+                        -p 5000:5000 \
+                        -e DATABASE_PATH=/data/barberbook.db \
+                        -v barberbook-data:/data \
+                        jenkins-demo:latest
+                '''
+            }
+        }
 
         stage('Verify Deployment') {
-    steps {
-        sh '''
-            sleep 3
+            steps {
+                sh '''
+                    sleep 3
 
-            curl -f http://localhost:5000/
+                    curl -f http://localhost:5000/
 
-            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' jenkins-demo)
+                    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' jenkins-demo)
 
-            echo "Container health status: $HEALTH"
+                    echo "Container health status: $HEALTH"
 
-            test "$HEALTH" = "healthy"
-        '''
+                    test "$HEALTH" = "healthy"
+                '''
             }
+        }
     }
 }
