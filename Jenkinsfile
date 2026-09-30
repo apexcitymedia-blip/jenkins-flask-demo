@@ -50,7 +50,7 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                    sleep 3
+                    sleep 10
 
                     curl -f http://localhost:5000/
 
