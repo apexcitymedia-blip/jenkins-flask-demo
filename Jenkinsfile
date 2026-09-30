@@ -87,8 +87,11 @@ pipeline {
                 test "$HEALTH" = "healthy"
 
                 echo "Rollback completed successfully."
+echo "The new deployment failed, so this Jenkins build will be marked FAILED."
 
-            fi
+exit 1
+
+fi
         '''
     }
 }
