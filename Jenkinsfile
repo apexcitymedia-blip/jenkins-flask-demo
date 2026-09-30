@@ -75,6 +75,7 @@ pipeline {
                     -e DATABASE_PATH=/data/barberbook.db \
                     -v barberbook-data:/data \
                     jenkins-demo:previous
+docker tag jenkins-demo:previous jenkins-demo:latest
 
                 sleep 10
 
