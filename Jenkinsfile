@@ -25,12 +25,17 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                sh '''
-                    docker build -t jenkins-demo:latest .
-                '''
-            }
-        }
+    steps {
+        sh '''
+            if docker image inspect jenkins-demo:latest >/dev/null 2>&1; then
+                docker tag jenkins-demo:latest jenkins-demo:previous
+                echo "Previous image saved for rollback."
+            fi
+
+            docker build -t jenkins-demo:latest .
+        '''
+    }
+}
 
         stage('Deploy') {
             steps {
