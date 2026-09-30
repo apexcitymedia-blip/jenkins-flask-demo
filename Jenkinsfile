@@ -53,19 +53,44 @@ pipeline {
         }
 
         stage('Verify Deployment') {
-            steps {
-                sh '''
-                    sleep 10
+    steps {
+        sh '''
+            sleep 10
 
-                    curl -f http://localhost:5000/
+            if curl -f http://localhost:5000/ >/dev/null 2>&1 && \
+               [ "$(docker inspect --format='{{.State.Health.Status}}' jenkins-demo)" = "healthy" ]; then
 
-                    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' jenkins-demo)
+                echo "Deployment successful."
+                echo "Container health status: healthy"
 
-                    echo "Container health status: $HEALTH"
+            else
 
-                    test "$HEALTH" = "healthy"
-                '''
-            }
-        }
+                echo "Deployment failed. Starting automatic rollback..."
+
+                docker rm -f jenkins-demo || true
+
+                docker run -d \
+                    --name jenkins-demo \
+                    -p 5000:5000 \
+                    -e DATABASE_PATH=/data/barberbook.db \
+                    -v barberbook-data:/data \
+                    jenkins-demo:previous
+
+                sleep 10
+
+                curl -f http://localhost:5000/
+
+                HEALTH=$(docker inspect --format='{{.State.Health.Status}}' jenkins-demo)
+
+                echo "Rollback container health status: $HEALTH"
+
+                test "$HEALTH" = "healthy"
+
+                echo "Rollback completed successfully."
+
+            fi
+        '''
+    }
+}
     }
 }
