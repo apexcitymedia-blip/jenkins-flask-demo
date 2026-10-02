@@ -44,7 +44,7 @@ pipeline {
                     docker rm -f jenkins-demo 2>/dev/null || true
                     docker run -d \
                         --name jenkins-demo \
-                        -p 5000:5000 \
+                        -p 127.0.0.1:5000:5000 \
                         -e DATABASE_PATH=/data/barberbook.db \
                         -v barberbook-data:/data \
                         jenkins-demo:latest
@@ -71,7 +71,7 @@ pipeline {
 
                 docker run -d \
                     --name jenkins-demo \
-                    -p 5000:5000 \
+                    -p 127.0.0.1:5000:5000 \
                     -e DATABASE_PATH=/data/barberbook.db \
                     -v barberbook-data:/data \
                     jenkins-demo:previous
