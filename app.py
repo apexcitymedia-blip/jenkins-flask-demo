@@ -76,6 +76,94 @@ def init_db():
 init_db()
 
 
+def admin_configured():
+    return all([
+        app.secret_key,
+        os.environ.get("ADMIN_USERNAME"),
+        os.environ.get("ADMIN_PASSWORD"),
+    ])
+
+
+LOGIN_PAGE = """
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BarberBook Admin Login</title>
+</head>
+<body style="font-family:Arial,sans-serif;max-width:380px;margin:60px auto;padding:20px">
+  <h1>Admin Login</h1>
+  {% if error %}
+    <p style="color:#b00020">{{ error }}</p>
+  {% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <p>
+      <label for="username">Username</label><br>
+      <input id="username" name="username" required autocomplete="username">
+    </p>
+    <p>
+      <label for="password">Password</label><br>
+      <input id="password" name="password" type="password" required autocomplete="current-password">
+    </p>
+    <button type="submit">Log in</button>
+  </form>
+</body>
+</html>
+"""
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not admin_configured():
+        return "Admin login is not configured.", 503
+
+    if request.method == "POST":
+        submitted_token = request.form.get("csrf_token", "")
+        saved_token = session.get("login_csrf_token", "")
+
+        if not saved_token or not hmac.compare_digest(
+            submitted_token, saved_token
+        ):
+            return "Invalid form token. Please reload the login page.", 400
+
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+
+        valid_username = hmac.compare_digest(
+            username, os.environ["ADMIN_USERNAME"]
+        )
+        valid_password = hmac.compare_digest(
+            password, os.environ["ADMIN_PASSWORD"]
+        )
+
+        session.pop("login_csrf_token", None)
+
+        if valid_username and valid_password:
+            session.clear()
+            session["admin_logged_in"] = True
+            return redirect(url_for("admin"))
+
+        new_token = secrets.token_urlsafe(32)
+        session["login_csrf_token"] = new_token
+
+        return render_template_string(
+            LOGIN_PAGE,
+            error="Incorrect username or password.",
+            csrf_token=new_token,
+        ), 401
+
+    token = secrets.token_urlsafe(32)
+    session["login_csrf_token"] = token
+
+    return render_template_string(
+        LOGIN_PAGE,
+        error=None,
+        csrf_token=token,
+    )
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -128,6 +216,12 @@ def book():
 
 @app.route("/admin")
 def admin():
+    if not admin_configured():
+        return "Admin login is not configured.", 503
+
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
     conn = get_db_connection()
 
     try:
@@ -147,5 +241,17 @@ def admin():
     )
 
 
+@app.route("/logout", methods=["POST"])
+def logout():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    session.clear()
+    return redirect(url_for("login"))
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000))
+    )
