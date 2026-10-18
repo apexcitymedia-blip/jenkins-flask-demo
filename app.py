@@ -7,18 +7,8 @@ import os
 import sqlite3
 import secrets
 import hmac
-from flask import (
-    Flask, render_template, request, redirect,
-    url_for, session, render_template_string
-)
-import os
-import sqlite3
-import secrets
-import hmac
 from datetime import datetime, date, time, timedelta
 from zoneinfo import ZoneInfo
-
-app = Flask(__name__)
 
 app = Flask(__name__)
 
@@ -32,7 +22,11 @@ app.config.update(
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
-# BarberBook appointment settings
+
+# ==========================================
+# BARBERBOOK APPOINTMENT SETTINGS
+# ==========================================
+
 SHOP_TIMEZONE = ZoneInfo("Europe/Rome")
 
 OPENING_TIME = time(7, 0)
@@ -45,16 +39,27 @@ SERVICE_DURATIONS = {
 }
 
 ALLOWED_BARBERS = {"Alex", "Mike", "James"}
+
 if DATABASE_URL:
     import psycopg
     from psycopg.rows import dict_row
 
 
+# ==========================================
+# DATABASE CONNECTION
+# ==========================================
+
 def get_db_connection():
     if DATABASE_URL:
-        return psycopg.connect(DATABASE_URL, row_factory=dict_row)
+        return psycopg.connect(
+            DATABASE_URL,
+            row_factory=dict_row
+        )
 
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(
+        DATABASE,
+        timeout=15
+    )
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -99,6 +104,10 @@ def init_db():
 
 init_db()
 
+
+# ==========================================
+# ADMIN AUTHENTICATION
+# ==========================================
 
 def admin_configured():
     return all([
@@ -150,7 +159,10 @@ def login():
         if not saved_token or not hmac.compare_digest(
             submitted_token, saved_token
         ):
-            return "Invalid form token. Please reload the login page.", 400
+            return (
+                "Invalid form token. Please reload the login page.",
+                400
+            )
 
         username = request.form.get("username", "")
         password = request.form.get("password", "")
@@ -188,55 +200,234 @@ def login():
     )
 
 
+# ==========================================
+# HOMEPAGE
+# ==========================================
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
+# ==========================================
+# SMART APPOINTMENT BOOKING
+# ==========================================
+
 @app.route("/book", methods=["GET", "POST"])
 def book():
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-        service = request.form.get("service", "").strip()
-        barber = request.form.get("barber", "").strip()
-        date = request.form.get("date", "").strip()
-        time = request.form.get("time", "").strip()
+    if request.method == "GET":
+        return render_template("booking.html")
 
-        if not all([name, email, service, barber, date, time]):
-            return render_template(
-                "booking.html",
-                error="Please complete all fields."
-            ), 400
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip()
+    service = request.form.get("service", "").strip()
+    barber = request.form.get("barber", "").strip()
+    date_text = request.form.get("date", "").strip()
+    time_text = request.form.get("time", "").strip()
 
-        conn = get_db_connection()
-
-        try:
-            placeholder = "%s" if DATABASE_URL else "?"
-            conn.execute(
-                f"""
-                INSERT INTO appointments
-                (name, email, service, barber, date, time)
-                VALUES ({placeholder}, {placeholder}, {placeholder},
-                        {placeholder}, {placeholder}, {placeholder})
-                """,
-                (name, email, service, barber, date, time)
-            )
-            conn.commit()
-        finally:
-            conn.close()
-
+    def booking_error(message):
         return render_template(
-            "confirmation.html",
-            name=name,
-            service=service,
-            barber=barber,
-            date=date,
-            time=time
+            "booking.html",
+            error=message
+        ), 400
+
+    # Validate required fields.
+    if not all([
+        name, email, service, barber, date_text, time_text
+    ]):
+        return booking_error("Please complete all fields.")
+
+    # Validate basic input lengths and email format.
+    if (
+        len(name) > 100
+        or len(email) > 254
+        or "@" not in email
+        or email.startswith("@")
+        or email.endswith("@")
+    ):
+        return booking_error(
+            "Please enter a valid name and email address."
         )
 
-    return render_template("booking.html")
+    # Accept only known services and barbers.
+    if service not in SERVICE_DURATIONS:
+        return booking_error("Please select a valid service.")
 
+    if barber not in ALLOWED_BARBERS:
+        return booking_error("Please select a valid barber.")
+
+    # Parse the submitted date and time strictly.
+    try:
+        appointment_date = date.fromisoformat(date_text)
+        parsed_time = datetime.strptime(
+            time_text, "%H:%M"
+        ).time()
+
+        # Ensure the date is in the expected YYYY-MM-DD format.
+        if appointment_date.isoformat() != date_text:
+            raise ValueError("Invalid date format")
+
+    except ValueError:
+        return booking_error(
+            "Please enter a valid appointment date and time."
+        )
+
+    now = datetime.now(SHOP_TIMEZONE)
+
+    start = datetime.combine(
+        appointment_date,
+        parsed_time,
+        tzinfo=SHOP_TIMEZONE
+    )
+
+    duration = SERVICE_DURATIONS[service]
+    end = start + timedelta(minutes=duration)
+
+    # Reject past appointments.
+    if start < now:
+        return booking_error(
+            "Please choose a future appointment time."
+        )
+
+    # The entire service must fit within opening hours.
+    if (
+        parsed_time < OPENING_TIME
+        or end.date() != appointment_date
+        or end.time().replace(tzinfo=None) > CLOSING_TIME
+    ):
+        return booking_error(
+            "Your appointment must start at or after 07:00 "
+            "and finish by 23:00."
+        )
+
+    conn = get_db_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        if DATABASE_URL:
+            # PostgreSQL: serialize booking attempts for this barber.
+            # The transaction-level lock is released at commit/rollback.
+            conn.execute(
+                """
+                SELECT pg_advisory_xact_lock(
+                    hashtextextended(%s, 0)
+                )
+                """,
+                (barber,)
+            )
+        else:
+            # SQLite: obtain a write lock before checking availability.
+            conn.execute("BEGIN IMMEDIATE")
+
+        # Find appointments for this barber on the requested date.
+        existing_appointments = conn.execute(
+            f"""
+            SELECT service, time
+            FROM appointments
+            WHERE barber = {placeholder}
+              AND date = {placeholder}
+            """,
+            (barber, date_text)
+        ).fetchall()
+
+        for existing in existing_appointments:
+            try:
+                existing_time_text = str(existing["time"])
+
+                # Existing database values are normally HH:MM.
+                # Accept HH:MM:SS as well for older records.
+                try:
+                    existing_start_time = datetime.strptime(
+                        existing_time_text, "%H:%M"
+                    ).time()
+                except ValueError:
+                    existing_start_time = datetime.strptime(
+                        existing_time_text, "%H:%M:%S"
+                    ).time()
+
+            except ValueError:
+                conn.rollback()
+                app.logger.error(
+                    "Could not parse an existing appointment time."
+                )
+                return booking_error(
+                    "We couldn't verify this barber's schedule. "
+                    "Please contact the shop."
+                )
+
+            existing_start = datetime.combine(
+                appointment_date,
+                existing_start_time,
+                tzinfo=SHOP_TIMEZONE
+            )
+
+            # Use a conservative duration for unknown legacy services.
+            existing_duration = SERVICE_DURATIONS.get(
+                existing["service"], 60
+            )
+
+            existing_end = existing_start + timedelta(
+                minutes=existing_duration
+            )
+
+            # Two appointments conflict if their time intervals overlap.
+            if (
+                start < existing_end
+                and existing_start < end
+            ):
+                conn.rollback()
+                return booking_error(
+                    "That time is unavailable for this barber. "
+                    "Please choose another time."
+                )
+
+        # No conflict found: save the new appointment.
+        conn.execute(
+            f"""
+            INSERT INTO appointments
+                (name, email, service, barber, date, time)
+            VALUES
+                ({placeholder}, {placeholder}, {placeholder},
+                 {placeholder}, {placeholder}, {placeholder})
+            """,
+            (
+                name,
+                email,
+                service,
+                barber,
+                date_text,
+                time_text
+            )
+        )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception(
+            "Appointment booking failed."
+        )
+        return booking_error(
+            "We couldn't complete your booking. Please try again."
+        )
+
+    finally:
+        conn.close()
+
+    return render_template(
+        "confirmation.html",
+        name=name,
+        service=service,
+        barber=barber,
+        date=date_text,
+        time=time_text
+    )
+
+
+# ==========================================
+# ADMIN DASHBOARD
+# ==========================================
 
 @app.route("/admin")
 def admin():
@@ -265,6 +456,10 @@ def admin():
     )
 
 
+# ==========================================
+# ADMIN LOGOUT
+# ==========================================
+
 @app.route("/logout", methods=["POST"])
 def logout():
     if not session.get("admin_logged_in"):
@@ -273,6 +468,10 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+
+# ==========================================
+# START APPLICATION
+# ==========================================
 
 if __name__ == "__main__":
     app.run(
