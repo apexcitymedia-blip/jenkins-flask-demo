@@ -1,68 +1,133 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment | BarberBook</title>
+    <meta name="theme-color" content="#11110f">
+    <meta name="description" content="Book your next haircut or grooming appointment with BarberBook.">
+    <title>Book Your Visit | BarberBook</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<nav>
-    <div class="logo">BARBERBOOK</div>
-    <a href="/" class="nav-button">Home</a>
+<nav class="navbar">
+    <a href="/" class="logo" aria-label="BarberBook home">
+        BARBER<span>BOOK</span><i>.</i>
+    </a>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/#services">Services</a>
+        <a href="/" class="nav-button">BACK TO HOME <span>↗</span></a>
+    </div>
 </nav>
 
-<section class="booking-section">
+<main class="booking-section">
+    <section class="booking-card" aria-labelledby="booking-title">
 
-    <div class="booking-card">
+        <a href="/" class="booking-back">← Back to homepage</a>
 
-        <p class="eyebrow">BOOK YOUR VISIT</p>
-        <h1>Make an Appointment</h1>
+        <p class="eyebrow">
+            <span class="gold-line"></span>
+            YOUR NEXT GREAT LOOK
+        </p>
+
+        <h1 id="booking-title">Reserve your <span>chair.</span></h1>
+
+        <p class="booking-description">
+            A little time for yourself goes a long way.
+            Tell us what you need and choose your preferred appointment.
+        </p>
+
+        <div class="booking-divider"></div>
 
         {% if error %}
-        <div class="error">{{ error }}</div>
+        <div class="error" role="alert">{{ error }}</div>
         {% endif %}
 
         <form method="POST">
 
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" required>
+            <div class="form-heading">
+                <span>01</span>
+                <h2>Your details</h2>
+            </div>
 
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
+            <label for="name">Full name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Enter your full name"
+                autocomplete="name"
+                maxlength="100"
+                required
+            >
 
-            <label for="service">Service</label>
+            <label for="email">Email address</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                maxlength="254"
+                required
+            >
+
+            <div class="form-heading form-heading-spaced">
+                <span>02</span>
+                <h2>Your appointment</h2>
+            </div>
+
+            <label for="service">Choose your service</label>
             <select id="service" name="service" required>
-                <option value="">Select a service</option>
-                <option value="Haircut">Haircut - $25</option>
-                <option value="Beard Trim">Beard Trim - $15</option>
-                <option value="Hair + Beard">Hair + Beard - $35</option>
+                <option value="">Select a grooming service</option>
+                <option value="Haircut">The Haircut — $25</option>
+                <option value="Beard Trim">The Beard Trim — $15</option>
+                <option value="Hair + Beard">The Complete — $35</option>
             </select>
 
-            <label for="barber">Barber</label>
+            <label for="barber">Choose your barber</label>
             <select id="barber" name="barber" required>
-                <option value="">Select a barber</option>
+                <option value="">Select your preferred barber</option>
                 <option value="Alex">Alex</option>
                 <option value="Mike">Mike</option>
                 <option value="James">James</option>
             </select>
 
-            <label for="date">Date</label>
-            <input type="date" id="date" name="date" required>
+            <div class="form-row">
+                <div>
+                    <label for="date">Preferred date</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
 
-            <label for="time">Time</label>
-            <input type="time" id="time" name="time" required>
+                <div>
+                    <label for="time">Preferred time</label>
+                    <input type="time" id="time" name="time" required>
+                </div>
+            </div>
+
+            <p class="booking-small-note">
+                Your requested time will need to be checked against the barber's availability.
+            </p>
 
             <button type="submit" class="button full-width">
-                Confirm Appointment
+                REQUEST APPOINTMENT <span>↗</span>
             </button>
 
+            <p class="booking-privacy-note">
+                Please check your details before submitting your booking.
+            </p>
+
         </form>
+    </section>
+</main>
 
-    </div>
-
-</section>
+<footer class="footer booking-footer">
+    <a href="/" class="logo">BARBER<span>BOOK</span><i>.</i></a>
+    <p>Good grooming. No compromises.</p>
+    <p class="copyright">© 2026 BARBERBOOK. ALL RIGHTS RESERVED.</p>
+</footer>
 
 </body>
 </html>
