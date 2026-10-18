@@ -2,3 +2,4 @@ Flask
 pytest
 gunicorn
 psycopg[binary]
+Flask-Login
