@@ -1,9 +1,22 @@
 
-from flask import Flask, render_template, request
+from flask import (
+    Flask, render_template, request, redirect,
+    url_for, session, render_template_string
+)
 import os
 import sqlite3
+import secrets
+import hmac
 
 app = Flask(__name__)
+
+app.secret_key = os.environ.get("SECRET_KEY")
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,
+)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
