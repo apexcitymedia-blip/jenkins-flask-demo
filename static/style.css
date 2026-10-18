@@ -788,3 +788,106 @@ select:focus {
         animation-duration: 0.01ms !important;
     }
 }
+
+/* ========================================
+   PREMIUM BOOKING FORM ENHANCEMENTS
+   ======================================== */
+
+.booking-back {
+    display: inline-block;
+    margin-bottom: 28px;
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.booking-back:hover {
+    color: var(--gold);
+}
+
+.booking-description {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0 0 24px;
+}
+
+.booking-divider {
+    height: 1px;
+    width: 100%;
+    background: var(--border);
+    margin: 25px 0;
+}
+
+.form-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.form-heading > span {
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 1px;
+    border: 1px solid var(--border);
+    padding: 7px 9px;
+}
+
+.form-heading h2 {
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.form-heading-spaced {
+    margin-top: 28px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.form-row > div {
+    min-width: 0;
+}
+
+.form-row input {
+    box-sizing: border-box;
+}
+
+.booking-small-note {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 10px 0 4px;
+}
+
+.booking-privacy-note {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.7;
+    text-align: center;
+    margin-top: 16px;
+}
+
+.booking-footer {
+    padding-top: 30px;
+}
+
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .booking-card {
+        padding: 25px 18px;
+    }
+}
