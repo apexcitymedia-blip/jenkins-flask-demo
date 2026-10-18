@@ -32,7 +32,19 @@ app.config.update(
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
+# BarberBook appointment settings
+SHOP_TIMEZONE = ZoneInfo("Europe/Rome")
 
+OPENING_TIME = time(7, 0)
+CLOSING_TIME = time(23, 0)
+
+SERVICE_DURATIONS = {
+    "Haircut": 30,
+    "Beard Trim": 15,
+    "Hair + Beard": 45,
+}
+
+ALLOWED_BARBERS = {"Alex", "Mike", "James"}
 if DATABASE_URL:
     import psycopg
     from psycopg.rows import dict_row
