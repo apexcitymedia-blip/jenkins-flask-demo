@@ -1,64 +1,134 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BarberBook | Professional Barbershop</title>
+    <meta name="theme-color" content="#11110f">
+    <meta name="description" content="Discover your signature style at BarberBook. Book premium haircuts, beard trims and grooming appointments.">
+    <title>BarberBook | Your Style. Your Standard.</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<nav>
-    <div class="logo">BARBERBOOK</div>
-    <a href="/book" class="nav-button">Book Appointment</a>
+<nav class="navbar">
+    <a href="/" class="logo" aria-label="BarberBook home">
+        BARBER<span>BOOK</span><i>.</i>
+    </a>
+    <div class="nav-links">
+        <a href="#services">Services</a>
+        <a href="#visit">Visit Us</a>
+        <a href="/book" class="nav-button">BOOK YOUR VISIT <span>↗</span></a>
+    </div>
 </nav>
 
-<section class="hero">
-    <div class="hero-content">
-        <p class="eyebrow">PROFESSIONAL BARBERSHOP</p>
-        <h1>Look Good.<br>Feel Good.</h1>
-        <p class="hero-text">
-            Premium haircuts, beard trims, and grooming from experienced barbers.
-        </p>
-        <a href="/book" class="button">Book an Appointment</a>
-    </div>
-</section>
-
-<section class="services">
-    <p class="eyebrow">OUR SERVICES</p>
-    <h2>Sharp Looks. Every Time.</h2>
-
-    <div class="service-grid">
-
-        <div class="service-card">
-            <h3>Haircut</h3>
-            <p>Classic or modern cut tailored to your style.</p>
-            <strong>$25</strong>
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <p class="eyebrow"><span class="gold-line"></span> THE ART OF GROOMING</p>
+            <h1>Your style.<br>Your <span>standard.</span></h1>
+            <p class="hero-text">
+                Great grooming isn't just about the way you look.
+                It's about the way you carry yourself.
+            </p>
+            <div class="hero-actions">
+                <a href="/book" class="button">BOOK AN APPOINTMENT <span>↗</span></a>
+                <a href="#services" class="text-link">Explore services ↓</a>
+            </div>
+            <div class="hero-note">
+                <span class="status-dot"></span>
+                PRECISION CUTS. PERSONAL SERVICE.
+            </div>
         </div>
 
-        <div class="service-card">
-            <h3>Beard Trim</h3>
-            <p>Professional shaping and detailed beard grooming.</p>
-            <strong>$15</strong>
+        <div class="hero-art" aria-label="BarberBook signature branding">
+            <div class="art-ring ring-one"></div>
+            <div class="art-ring ring-two"></div>
+            <div class="art-center">
+                <span class="art-monogram">B<span>.</span></span>
+                <span class="art-caption">BARBERBOOK</span>
+                <span class="art-subcaption">THE GROOMING CLUB</span>
+            </div>
+            <div class="art-tag">EST. 2026</div>
         </div>
 
-        <div class="service-card">
-            <h3>Hair + Beard</h3>
-            <p>The complete grooming experience.</p>
-            <strong>$35</strong>
+        <div class="hero-index">01 <span>/</span> YOUR NEXT CHAPTER</div>
+    </section>
+
+    <section class="intro-strip">
+        <p>GOOD HAIR. GREAT DETAIL. CONFIDENT YOU.</p>
+        <span>✳</span>
+        <p>YOUR CHAIR IS WAITING.</p>
+    </section>
+
+    <section class="services" id="services">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow"><span class="gold-line"></span> WHAT WE DO</p>
+                <h2>Made sharp.<br><span>Made for you.</span></h2>
+            </div>
+            <p class="section-description">
+                No shortcuts. No guesswork. Just considered grooming
+                tailored to your look.
+            </p>
         </div>
 
-    </div>
-</section>
+        <div class="service-grid">
+            <article class="service-card">
+                <div class="service-number">01 / THE CLASSIC</div>
+                <div class="service-symbol" aria-hidden="true">✳</div>
+                <h3>The Haircut</h3>
+                <p>A classic or contemporary cut, finished to suit your style.</p>
+                <div class="service-bottom">
+                    <strong>$25</strong>
+                    <a href="/book" aria-label="Book a haircut">BOOK ↗</a>
+                </div>
+            </article>
 
-<section class="hours">
-    <h2>Visit Us</h2>
-    <p>Monday – Saturday: 9:00 AM – 7:00 PM</p>
-    <p>Sunday: Closed</p>
-</section>
+            <article class="service-card featured">
+                <div class="service-number">02 / THE DETAIL</div>
+                <div class="service-symbol" aria-hidden="true">✂</div>
+                <h3>The Beard Trim</h3>
+                <p>Clean lines, precise shaping and attention to every detail.</p>
+                <div class="service-bottom">
+                    <strong>$15</strong>
+                    <a href="/book" aria-label="Book a beard trim">BOOK ↗</a>
+                </div>
+            </article>
 
-<footer>
-    <p>© 2026 BarberBook. All rights reserved.</p>
+            <article class="service-card">
+                <div class="service-number">03 / THE FULL SET</div>
+                <div class="service-symbol" aria-hidden="true">✦</div>
+                <h3>The Complete</h3>
+                <p>A fresh haircut and a perfectly shaped beard. One complete look.</p>
+                <div class="service-bottom">
+                    <strong>$35</strong>
+                    <a href="/book" aria-label="Book haircut and beard">BOOK ↗</a>
+                </div>
+            </article>
+        </div>
+
+        <p class="service-note">YOUR LOOK. YOUR APPOINTMENT. YOUR TIME.</p>
+    </section>
+
+    <section class="visit" id="visit">
+        <div>
+            <p class="eyebrow"><span class="gold-line"></span> MAKE SOME TIME FOR YOU</p>
+            <h2>Come in.<br><span>Leave sharper.</span></h2>
+        </div>
+        <div class="visit-details">
+            <p class="visit-label">OPENING HOURS</p>
+            <p>Monday – Saturday <span>9:00 AM – 7:00 PM</span></p>
+            <p>Sunday <span>Closed</span></p>
+            <a href="/book" class="button">FIND YOUR TIME <span>↗</span></a>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <a href="/" class="logo">BARBER<span>BOOK</span><i>.</i></a>
+    <p>Good grooming. No compromises.</p>
+    <p class="copyright">© 2026 BARBERBOOK. ALL RIGHTS RESERVED.</p>
 </footer>
 
 </body>
