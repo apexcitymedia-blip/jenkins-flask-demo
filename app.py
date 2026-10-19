@@ -9,11 +9,42 @@ import secrets
 import hmac
 from datetime import datetime, date, time, timedelta
 from zoneinfo import ZoneInfo
-
+from flask_mail import Mail, Message
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SECRET_KEY")
+app.config.update(
+    MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
+    MAIL_PORT=int(os.environ.get("MAIL_PORT", "587")),
+    MAIL_USE_TLS=os.environ.get("MAIL_USE_TLS", "True").lower() == "true",
+    MAIL_USERNAME=os.environ.get("MAIL_USERNAME"),
+    MAIL_PASSWORD=os.environ.get("MAIL_PASSWORD"),
+    MAIL_DEFAULT_SENDER=os.environ.get("MAIL_USERNAME"),
+)
 
+mail = Mail(app)
+def send_booking_confirmation(name, email, service, barber, date_text, time_text):
+    try:
+        message = Message(
+            subject="Your BarberBook Appointment Confirmation",
+            recipients=[email],
+            body=(
+                f"Hello {name},\n\n"
+                "Your BarberBook appointment is confirmed!\n\n"
+                f"Service: {service}\n"
+                f"Barber: {barber}\n"
+                f"Date: {date_text}\n"
+                f"Time: {time_text}\n\n"
+                "We look forward to seeing you!\n\n"
+                "The BarberBook Team"
+            ),
+        )
+        mail.send(message)
+        app.logger.info("Booking confirmation email sent.")
+    except Exception:
+        app.logger.exception(
+            "Booking was saved, but confirmation email sending failed."
+        )
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
@@ -414,7 +445,9 @@ def book():
 
     finally:
         conn.close()
-
+    send_booking_confirmation(
+        name, email, service, barber, date_text, time_text
+    )
     return render_template(
         "confirmation.html",
         name=name,
@@ -449,7 +482,7 @@ def admin():
         ).fetchall()
     finally:
         conn.close()
-
+    
     return render_template(
         "admin.html",
         appointments=appointments
