@@ -332,13 +332,13 @@ def book():
             "and finish by 23:00."
         )
 
-        conn = get_db_connection()
+            conn = None
 
     try:
+        conn = get_db_connection()
         placeholder = "%s" if DATABASE_URL else "?"
 
         if DATABASE_URL:
-            # PostgreSQL: serialize booking attempts for this barber.
             conn.execute(
                 """
                 SELECT pg_advisory_xact_lock(
@@ -348,10 +348,8 @@ def book():
                 (barber,)
             )
         else:
-            # SQLite: obtain a write lock before checking availability.
             conn.execute("BEGIN IMMEDIATE")
 
-        # Find appointments for this barber on the requested date.
         existing_appointments = conn.execute(
             f"""
             SELECT service, time
@@ -363,28 +361,16 @@ def book():
         ).fetchall()
 
         for existing in existing_appointments:
+            existing_time_text = str(existing["time"])
+
             try:
-                existing_time_text = str(existing["time"])
-
-                # Accept HH:MM and HH:MM:SS time formats.
-                try:
-                    existing_start_time = datetime.strptime(
-                        existing_time_text, "%H:%M"
-                    ).time()
-                except ValueError:
-                    existing_start_time = datetime.strptime(
-                        existing_time_text, "%H:%M:%S"
-                    ).time()
-
+                existing_start_time = datetime.strptime(
+                    existing_time_text, "%H:%M"
+                ).time()
             except ValueError:
-                conn.rollback()
-                app.logger.error(
-                    "Could not parse an existing appointment time."
-                )
-                return booking_error(
-                    "We couldn't verify this barber's schedule. "
-                    "Please contact the shop."
-                )
+                existing_start_time = datetime.strptime(
+                    existing_time_text, "%H:%M:%S"
+                ).time()
 
             existing_start = datetime.combine(
                 appointment_date,
@@ -395,12 +381,10 @@ def book():
             existing_duration = SERVICE_DURATIONS.get(
                 existing["service"], 60
             )
-
             existing_end = existing_start + timedelta(
                 minutes=existing_duration
             )
 
-            # Reject overlapping appointments.
             if start < existing_end and existing_start < end:
                 conn.rollback()
                 return booking_error(
@@ -408,7 +392,6 @@ def book():
                     "Please choose another time."
                 )
 
-        # Save the appointment after checking for conflicts.
         conn.execute(
             f"""
             INSERT INTO appointments
@@ -430,13 +413,15 @@ def book():
         conn.commit()
 
     except Exception:
-        conn.rollback()
+        if conn is not None:
+            conn.rollback()
         app.logger.exception("Appointment booking failed.")
         return booking_error(
             "We couldn't complete your booking. Please try again."
         )
     finally:
-        conn.close()
+        if conn is not None:
+            conn.close()
 
     # Email is temporarily disabled while SMTP is investigated.
 
