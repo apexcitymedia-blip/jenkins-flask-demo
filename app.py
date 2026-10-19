@@ -332,14 +332,13 @@ def book():
             "and finish by 23:00."
         )
 
-    conn = get_db_connection()
+        conn = get_db_connection()
 
     try:
         placeholder = "%s" if DATABASE_URL else "?"
 
         if DATABASE_URL:
             # PostgreSQL: serialize booking attempts for this barber.
-            # The transaction-level lock is released at commit/rollback.
             conn.execute(
                 """
                 SELECT pg_advisory_xact_lock(
@@ -367,8 +366,7 @@ def book():
             try:
                 existing_time_text = str(existing["time"])
 
-                # Existing database values are normally HH:MM.
-                # Accept HH:MM:SS as well for older records.
+                # Accept HH:MM and HH:MM:SS time formats.
                 try:
                     existing_start_time = datetime.strptime(
                         existing_time_text, "%H:%M"
@@ -394,7 +392,6 @@ def book():
                 tzinfo=SHOP_TIMEZONE
             )
 
-            # Use a conservative duration for unknown legacy services.
             existing_duration = SERVICE_DURATIONS.get(
                 existing["service"], 60
             )
@@ -403,18 +400,15 @@ def book():
                 minutes=existing_duration
             )
 
-            # Two appointments conflict if their time intervals overlap.
-            if (
-                start < existing_end
-                and existing_start < end
-            ):
+            # Reject overlapping appointments.
+            if start < existing_end and existing_start < end:
                 conn.rollback()
                 return booking_error(
                     "That time is unavailable for this barber. "
                     "Please choose another time."
                 )
 
-        # No conflict found: save the new appointment.
+        # Save the appointment after checking for conflicts.
         conn.execute(
             f"""
             INSERT INTO appointments
@@ -435,21 +429,16 @@ def book():
 
         conn.commit()
 
-        except Exception:
+    except Exception:
         conn.rollback()
-        app.logger.exception(
-            "Appointment booking failed."
-        )
+        app.logger.exception("Appointment booking failed.")
         return booking_error(
             "We couldn't complete your booking. Please try again."
         )
     finally:
         conn.close()
 
-    # Email sending is temporarily disabled while we fix SMTP.
-    # send_booking_confirmation(
-    #     name, email, service, barber, date_text, time_text
-    # )
+    # Email is temporarily disabled while SMTP is investigated.
 
     return render_template(
         "confirmation.html",
@@ -459,8 +448,6 @@ def book():
         date=date_text,
         time=time_text
     )
-
-
 # ==========================================
 # ADMIN DASHBOARD
 # ==========================================
