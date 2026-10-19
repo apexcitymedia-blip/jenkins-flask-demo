@@ -335,7 +335,7 @@ def book():
     conn = None
 
     try:
-        conn = get_db_connection())
+        conn = get_db_connection()
         placeholder = "%s" if DATABASE_URL else "?"
 
         if DATABASE_URL:
