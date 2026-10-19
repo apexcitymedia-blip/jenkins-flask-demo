@@ -3,3 +3,4 @@ pytest
 gunicorn
 psycopg[binary]
 Flask-Login
+Flask-Mail
