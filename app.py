@@ -435,7 +435,7 @@ def book():
 
         conn.commit()
 
-    except Exception:
+        except Exception:
         conn.rollback()
         app.logger.exception(
             "Appointment booking failed."
@@ -443,12 +443,10 @@ def book():
         return booking_error(
             "We couldn't complete your booking. Please try again."
         )
-
     finally:
         conn.close()
-        finally:
-        conn.close()
 
+    # Email sending is temporarily disabled while we fix SMTP.
     # send_booking_confirmation(
     #     name, email, service, barber, date_text, time_text
     # )
