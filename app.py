@@ -446,9 +446,13 @@ def book():
 
     finally:
         conn.close()
-    send_booking_confirmation(
-        name, email, service, barber, date_text, time_text
-    )
+        finally:
+        conn.close()
+
+    # send_booking_confirmation(
+    #     name, email, service, barber, date_text, time_text
+    # )
+
     return render_template(
         "confirmation.html",
         name=name,
