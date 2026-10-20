@@ -423,7 +423,19 @@ def book():
         if conn is not None:
             conn.close()
 
-    # Email is temporarily disabled while SMTP is investigated.
+        try:
+        send_booking_confirmation(
+            name,
+            email,
+            service,
+            barber,
+            date_text,
+            time_text
+        )
+    except Exception:
+        app.logger.exception(
+            "Appointment was saved, but confirmation email failed."
+        )
 
     return render_template(
         "confirmation.html",
