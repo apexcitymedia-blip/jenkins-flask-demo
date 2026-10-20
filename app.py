@@ -423,7 +423,7 @@ def book():
         if conn is not None:
             conn.close()
 
-        try:
+    try:
         send_booking_confirmation(
             name,
             email,
