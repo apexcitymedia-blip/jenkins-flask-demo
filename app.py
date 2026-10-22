@@ -677,7 +677,7 @@ except Exception:
     app.logger.exception("Could not start email notification.")
 
 
-    return redirect(url_for("admin"))
+return redirect(url_for("admin"))
 
 
 
