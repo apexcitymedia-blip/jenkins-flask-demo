@@ -524,6 +524,7 @@ def admin():
         appointments=appointments,
         csrf_token=token
     )
+
 @app.route(
     "/admin/appointment/<int:appointment_id>/status",
     methods=["POST"]
@@ -550,9 +551,27 @@ def update_appointment_status(appointment_id):
         return "Invalid appointment status.", 400
 
     conn = get_db_connection()
+    appointment = None
 
     try:
         placeholder = "%s" if DATABASE_URL else "?"
+
+        appointment = conn.execute(
+            f"""
+            SELECT name, email, service, barber, date, time
+            FROM appointments
+            WHERE id = {placeholder}
+              AND status = 'Pending'
+            """,
+            (appointment_id,)
+        ).fetchone()
+
+        if appointment is None:
+            return (
+                "Appointment not found or already processed. "
+                "Please reload the dashboard.",
+                409
+            )
 
         result = conn.execute(
             f"""
@@ -564,28 +583,41 @@ def update_appointment_status(appointment_id):
             (new_status, appointment_id)
         )
 
-        if DATABASE_URL:
-            updated = result.rowcount
-        else:
-            updated = result.rowcount
-
-        conn.commit()
-
-        if updated == 0:
+        if result.rowcount == 0:
+            conn.rollback()
             return (
-                "Appointment not found or it has already been processed. "
+                "Appointment has already been processed. "
                 "Please reload the dashboard.",
                 409
             )
+
+        conn.commit()
+
     except Exception:
         conn.rollback()
         app.logger.exception("Appointment status update failed.")
         return "Could not update the appointment. Please try again.", 500
+
     finally:
         conn.close()
 
     session.pop("admin_csrf_token", None)
+
+    try:
+        send_appointment_decision(
+            name=appointment["name"],
+            email=appointment["email"],
+            service=appointment["service"],
+            barber=appointment["barber"],
+            date_text=str(appointment["date"]),
+            time_text=str(appointment["time"]),
+            status=new_status,
+        )
+    except Exception:
+        app.logger.exception("Appointment saved, but email notification failed.")
+
     return redirect(url_for("admin"))
+
 
 
 # ==========================================
