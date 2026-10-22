@@ -128,7 +128,26 @@ def init_db():
                 )
                 """
             )
+        if DATABASE_URL:
+            conn.execute(
+                """
+                ALTER TABLE appointments
+                ADD COLUMN IF NOT EXISTS status
+                TEXT NOT NULL DEFAULT 'Pending'
+                """
+            )
+        else:
+            columns = conn.execute(
+                "PRAGMA table_info(appointments)"
+            ).fetchall()
 
+            if not any(column["name"] == "status" for column in columns):
+                conn.execute(
+                    """
+                    ALTER TABLE appointments
+                    ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'
+                    """
+                )
         conn.commit()
     finally:
         conn.close()
