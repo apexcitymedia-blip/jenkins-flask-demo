@@ -659,25 +659,24 @@ def update_appointment_status(appointment_id):
     session.pop("admin_csrf_token", None)
 
     
-try:
-    threading.Thread(
-        target=send_appointment_decision,
-        kwargs={
-            "name": appointment["name"],
-            "email": appointment["email"],
-            "service": appointment["service"],
-            "barber": appointment["barber"],
-            "date_text": str(appointment["date"]),
-            "time_text": str(appointment["time"]),
-            "status": new_status,
-        },
-        daemon=True,
-    ).start()
-except Exception:
-    app.logger.exception("Could not start email notification.")
+    try:
+        threading.Thread(
+            target=send_appointment_decision,
+            kwargs={
+                "name": appointment["name"],
+                "email": appointment["email"],
+                "service": appointment["service"],
+                "barber": appointment["barber"],
+                "date_text": str(appointment["date"]),
+                "time_text": str(appointment["time"]),
+                "status": new_status,
+            },
+            daemon=True,
+        ).start()
+    except Exception:
+        app.logger.exception("Could not start email notification.")
 
-
-return redirect(url_for("admin"))
+    return redirect(url_for("admin"))
 
 
 
