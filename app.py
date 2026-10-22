@@ -10,6 +10,10 @@ import hmac
 from datetime import datetime, date, time, timedelta
 from zoneinfo import ZoneInfo
 from flask_mail import Mail, Message
+
+import smtplib
+import threading
+from email.message import EmailMessage
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SECRET_KEY")
@@ -47,43 +51,94 @@ def send_booking_confirmation(name, email, service, barber, date_text, time_text
             "Booking was saved, but confirmation email sending failed."
         )
         
-def send_appointment_decision(name, email, service, barber, date_text, time_text, status):
-    try:
-        if status == "Accepted":
-            subject = "Your BarberBook Appointment Is Accepted"
-            decision_text = (
-                "Good news! Your appointment has been accepted."
-            )
-        elif status == "Rejected":
-            subject = "Update on Your BarberBook Appointment"
-            decision_text = (
-                "Unfortunately, your appointment request has been rejected. "
-                "Please contact us if you would like to arrange another time."
-            )
-        else:
-            app.logger.warning("Invalid appointment decision email status.")
-            return
 
-        message = Message(
-            subject=subject,
-            recipients=[email],
-            body=(
-                f"Hello {name},\n\n"
-                f"{decision_text}\n\n"
-                f"Service: {service}\n"
-                f"Barber: {barber}\n"
-                f"Date: {date_text}\n"
-                f"Time: {time_text}\n\n"
-                "Thank you for choosing BarberBook.\n\n"
-                "The BarberBook Team"
-            ),
-        )
-        mail.send(message)
-        app.logger.info("Appointment decision email sent.")
+def send_email_with_timeout(subject, email, body):
+    try:
+        with app.app_context():
+            sender = app.config.get("MAIL_DEFAULT_SENDER")
+            username = app.config.get("MAIL_USERNAME")
+            password = app.config.get("MAIL_PASSWORD")
+            server_name = app.config.get("MAIL_SERVER")
+            port = app.config.get("MAIL_PORT", 587)
+
+            if not sender or not server_name:
+                app.logger.error("Email settings are incomplete.")
+                return
+
+            message = EmailMessage()
+            message["Subject"] = subject
+            message["From"] = sender
+            message["To"] = email
+            message.set_content(body)
+
+            with smtplib.SMTP(
+                server_name, port, timeout=3
+            ) as server:
+                if app.config.get("MAIL_USE_TLS"):
+                    server.starttls()
+
+                if username and password:
+                    server.login(username, password)
+
+                server.send_message(message)
+
+            app.logger.info("Email sent successfully.")
+
     except Exception:
-        app.logger.exception(
-            "Appointment decision saved, but email sending failed."
+        app.logger.exception("Email delivery failed.")
+
+
+def send_booking_confirmation(
+    name, email, service, barber, date_text, time_text
+):
+    body = (
+        f"Hello {name},\n\n"
+        "Your BarberBook appointment is confirmed!\n\n"
+        f"Service: {service}\n"
+        f"Barber: {barber}\n"
+        f"Date: {date_text}\n"
+        f"Time: {time_text}\n\n"
+        "We look forward to seeing you!\n\n"
+        "The BarberBook Team"
+    )
+
+    send_email_with_timeout(
+        "Your BarberBook Appointment Confirmation",
+        email,
+        body,
+    )
+
+
+def send_appointment_decision(
+    name, email, service, barber, date_text, time_text, status
+):
+    if status == "Accepted":
+        subject = "Your BarberBook Appointment Is Accepted"
+        decision_text = (
+            "Good news! Your appointment has been accepted."
         )
+    elif status == "Rejected":
+        subject = "Update on Your BarberBook Appointment"
+        decision_text = (
+            "Unfortunately, your appointment request has been rejected. "
+            "Please contact us if you would like to arrange another time."
+        )
+    else:
+        app.logger.warning("Invalid appointment decision email status.")
+        return
+
+    body = (
+        f"Hello {name},\n\n"
+        f"{decision_text}\n\n"
+        f"Service: {service}\n"
+        f"Barber: {barber}\n"
+        f"Date: {date_text}\n"
+        f"Time: {time_text}\n\n"
+        "Thank you for choosing BarberBook.\n\n"
+        "The BarberBook Team"
+    )
+
+    send_email_with_timeout(subject, email, body)
 
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
@@ -603,18 +658,24 @@ def update_appointment_status(appointment_id):
 
     session.pop("admin_csrf_token", None)
 
-    try:
-        send_appointment_decision(
-            name=appointment["name"],
-            email=appointment["email"],
-            service=appointment["service"],
-            barber=appointment["barber"],
-            date_text=str(appointment["date"]),
-            time_text=str(appointment["time"]),
-            status=new_status,
-        )
-    except Exception:
-        app.logger.exception("Appointment saved, but email notification failed.")
+    
+try:
+    threading.Thread(
+        target=send_appointment_decision,
+        kwargs={
+            "name": appointment["name"],
+            "email": appointment["email"],
+            "service": appointment["service"],
+            "barber": appointment["barber"],
+            "date_text": str(appointment["date"]),
+            "time_text": str(appointment["time"]),
+            "status": new_status,
+        },
+        daemon=True,
+    ).start()
+except Exception:
+    app.logger.exception("Could not start email notification.")
+
 
     return redirect(url_for("admin"))
 
