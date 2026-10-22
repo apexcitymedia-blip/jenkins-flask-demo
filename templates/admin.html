@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,6 +36,8 @@
                                 <th>Barber</th>
                                 <th>Date</th>
                                 <th>Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
 
@@ -48,6 +51,23 @@
                                 <td>{{ appointment["barber"] }}</td>
                                 <td>{{ appointment["date"] }}</td>
                                 <td>{{ appointment["time"] }}</td>
+                                <td>{{ appointment["status"] }}</td>
+                                <td>
+                                    {% if appointment["status"] == "Pending" %}
+                                    <form method="post"
+                                          action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
+                                        <input type="hidden"
+                                               name="csrf_token"
+                                               value="{{ csrf_token }}">
+                                        <button type="submit" name="status"
+                                                value="Accepted">Accept</button>
+                                        <button type="submit" name="status"
+                                                value="Rejected">Reject</button>
+                                    </form>
+                                    {% else %}
+                                        No action needed
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
