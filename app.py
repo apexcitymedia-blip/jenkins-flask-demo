@@ -477,10 +477,76 @@ def admin():
     finally:
         conn.close()
     
+        token = secrets.token_urlsafe(32)
+    session["admin_csrf_token"] = token
+
     return render_template(
         "admin.html",
-        appointments=appointments
+        appointments=appointments,
+        csrf_token=token
     )
+    @app.route(
+    "/admin/appointment/<int:appointment_id>/status",
+    methods=["POST"]
+)
+def update_appointment_status(appointment_id):
+    if not admin_configured():
+        return "Admin login is not configured.", 503
+
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    submitted_token = request.form.get("csrf_token", "")
+    saved_token = session.get("admin_csrf_token", "")
+
+    if (
+        not saved_token
+        or not hmac.compare_digest(submitted_token, saved_token)
+    ):
+        return "Invalid form token. Please reload the dashboard.", 400
+
+    new_status = request.form.get("status", "")
+
+    if new_status not in {"Accepted", "Rejected"}:
+        return "Invalid appointment status.", 400
+
+    conn = get_db_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        result = conn.execute(
+            f"""
+            UPDATE appointments
+            SET status = {placeholder}
+            WHERE id = {placeholder}
+              AND status = 'Pending'
+            """,
+            (new_status, appointment_id)
+        )
+
+        if DATABASE_URL:
+            updated = result.rowcount
+        else:
+            updated = result.rowcount
+
+        conn.commit()
+
+        if updated == 0:
+            return (
+                "Appointment not found or it has already been processed. "
+                "Please reload the dashboard.",
+                409
+            )
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Appointment status update failed.")
+        return "Could not update the appointment. Please try again.", 500
+    finally:
+        conn.close()
+
+    session.pop("admin_csrf_token", None)
+    return redirect(url_for("admin"))
 
 
 # ==========================================
