@@ -485,7 +485,7 @@ def admin():
         appointments=appointments,
         csrf_token=token
     )
-    @app.route(
+@app.route(
     "/admin/appointment/<int:appointment_id>/status",
     methods=["POST"]
 )
