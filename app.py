@@ -22,7 +22,7 @@ app.config.update(
     MAIL_DEFAULT_SENDER=os.environ.get("MAIL_USERNAME"),
 )
 
-app.config["MAIL_TIMEOUT"] = 5
+app.config["MAIL_TIMEOUT"] = 2
 mail = Mail(app)
 def send_booking_confirmation(name, email, service, barber, date_text, time_text):
     try:
