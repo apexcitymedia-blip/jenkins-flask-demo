@@ -6,6 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BarberBook - Admin</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .action-buttons button {
+            cursor: pointer;
+        }
+
+        .status-form {
+            display: inline;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,12 +64,9 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
+                                <th>Customer</th>
                                 <th>Service</th>
-                                <th>Barber</th>
                                 <th>Date</th>
-                                <th>Time</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -46,24 +77,30 @@
                             <tr>
                                 <td>{{ appointment["id"] }}</td>
                                 <td>{{ appointment["name"] }}</td>
-                                <td>{{ appointment["email"] }}</td>
                                 <td>{{ appointment["service"] }}</td>
-                                <td>{{ appointment["barber"] }}</td>
                                 <td>{{ appointment["date"] }}</td>
-                                <td>{{ appointment["time"] }}</td>
                                 <td>{{ appointment["status"] }}</td>
                                 <td>
                                     {% if appointment["status"] == "Pending" %}
-                                    <form method="post"
-                                          action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
-                                        <input type="hidden"
-                                               name="csrf_token"
-                                               value="{{ csrf_token }}">
-                                        <button type="submit" name="status"
-                                                value="Accepted">Accept</button>
-                                        <button type="submit" name="status"
-                                                value="Rejected">Reject</button>
-                                    </form>
+                                    <div class="action-buttons">
+                                        <form class="status-form" method="post"
+                                              action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
+                                            <input type="hidden"
+                                                   name="csrf_token"
+                                                   value="{{ csrf_token }}">
+                                            <button type="submit" name="status"
+                                                    value="Accepted">Accept</button>
+                                        </form>
+
+                                        <form class="status-form" method="post"
+                                              action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
+                                            <input type="hidden"
+                                                   name="csrf_token"
+                                                   value="{{ csrf_token }}">
+                                            <button type="submit" name="status"
+                                                    value="Rejected">Reject</button>
+                                        </form>
+                                    </div>
                                     {% else %}
                                         No action needed
                                     {% endif %}
