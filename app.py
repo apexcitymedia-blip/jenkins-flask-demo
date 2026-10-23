@@ -17,6 +17,7 @@ from email.message import EmailMessage
 
 import json
 import urllib.request
+import urllib.error
 
 app = Flask(__name__)
 
@@ -91,6 +92,13 @@ def send_email_with_timeout(subject, email, body):
                 "Resend API response: %s",
                 response.status,
             )
+    except urllib.error.HTTPError as error:
+        details = error.read().decode("utf-8", errors="replace")
+        app.logger.error(
+            "Resend rejected email: HTTP %s — %s",
+            error.code,
+            details,
+        )
     except Exception:
         app.logger.exception("Resend email delivery failed.")
 
