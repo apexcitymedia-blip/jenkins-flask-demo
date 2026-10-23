@@ -21,6 +21,8 @@ import urllib.error
 
 app = Flask(__name__)
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config.update(
     MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
