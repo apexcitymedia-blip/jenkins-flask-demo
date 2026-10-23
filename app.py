@@ -76,12 +76,13 @@ def send_email_with_timeout(subject, email, body):
         "text": body,
     }
 
-    request = urllib.request.Request(
+  request = urllib.request.Request(
         "https://api.resend.com/emails",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "User-Agent": "BarberBook/1.0",
         },
         method="POST",
     )
