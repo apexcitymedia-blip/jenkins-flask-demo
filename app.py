@@ -14,6 +14,10 @@ from flask_mail import Mail, Message
 import smtplib
 import threading
 from email.message import EmailMessage
+
+import json
+import urllib.request
+
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SECRET_KEY")
@@ -53,39 +57,42 @@ def send_booking_confirmation(name, email, service, barber, date_text, time_text
         
 
 def send_email_with_timeout(subject, email, body):
+    api_key = os.environ.get("RESEND_API_KEY")
+
+    if not api_key:
+        app.logger.error("RESEND_API_KEY is not configured.")
+        return
+
+    sender = os.environ.get(
+        "RESEND_FROM_EMAIL",
+        "onboarding@resend.dev",
+    )
+
+    payload = {
+        "from": sender,
+        "to": [email],
+        "subject": subject,
+        "text": body,
+    }
+
+    request = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+
     try:
-        with app.app_context():
-            sender = app.config.get("MAIL_DEFAULT_SENDER")
-            username = app.config.get("MAIL_USERNAME")
-            password = app.config.get("MAIL_PASSWORD")
-            server_name = app.config.get("MAIL_SERVER")
-            port = app.config.get("MAIL_PORT", 587)
-
-            if not sender or not server_name:
-                app.logger.error("Email settings are incomplete.")
-                return
-
-            message = EmailMessage()
-            message["Subject"] = subject
-            message["From"] = sender
-            message["To"] = email
-            message.set_content(body)
-
-            with smtplib.SMTP(
-                server_name, port, timeout=3
-            ) as server:
-                if app.config.get("MAIL_USE_TLS"):
-                    server.starttls()
-
-                if username and password:
-                    server.login(username, password)
-
-                server.send_message(message)
-
-            app.logger.info("Email sent successfully.")
-
+        with urllib.request.urlopen(request, timeout=10) as response:
+            app.logger.info(
+                "Resend API response: %s",
+                response.status,
+            )
     except Exception:
-        app.logger.exception("Email delivery failed.")
+        app.logger.exception("Resend email delivery failed.")
 
 
 def send_booking_confirmation(
