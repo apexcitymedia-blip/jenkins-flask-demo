@@ -62,7 +62,7 @@ def send_email_with_timeout(subject, email, body):
 
     if not api_key:
         app.logger.error("RESEND_API_KEY is not configured.")
-        return
+    return
 
     sender = os.environ.get(
         "RESEND_FROM_EMAIL",
@@ -76,7 +76,7 @@ def send_email_with_timeout(subject, email, body):
         "text": body,
     }
 
-   request = urllib.request.Request(
+    request = urllib.request.Request(
         "https://api.resend.com/emails",
         data=json.dumps(payload).encode("utf-8"),
         headers={
