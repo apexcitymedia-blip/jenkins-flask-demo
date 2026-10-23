@@ -57,12 +57,13 @@ def send_booking_confirmation(name, email, service, barber, date_text, time_text
         )
         
 
+
 def send_email_with_timeout(subject, email, body):
     api_key = os.environ.get("RESEND_API_KEY")
 
     if not api_key:
         app.logger.error("RESEND_API_KEY is not configured.")
-    return
+        return
 
     sender = os.environ.get(
         "RESEND_FROM_EMAIL",
@@ -103,67 +104,6 @@ def send_email_with_timeout(subject, email, body):
     except Exception:
         app.logger.exception("Resend email delivery failed.")
 
-
-def send_booking_confirmation(
-    name, email, service, barber, date_text, time_text
-):
-    body = (
-        f"Hello {name},\n\n"
-        "Your BarberBook appointment is confirmed!\n\n"
-        f"Service: {service}\n"
-        f"Barber: {barber}\n"
-        f"Date: {date_text}\n"
-        f"Time: {time_text}\n\n"
-        "We look forward to seeing you!\n\n"
-        "The BarberBook Team"
-    )
-
-    send_email_with_timeout(
-        "Your BarberBook Appointment Confirmation",
-        email,
-        body,
-    )
-
-
-def send_appointment_decision(
-    name, email, service, barber, date_text, time_text, status
-):
-    if status == "Accepted":
-        subject = "Your BarberBook Appointment Is Accepted"
-        decision_text = (
-            "Good news! Your appointment has been accepted."
-        )
-    elif status == "Rejected":
-        subject = "Update on Your BarberBook Appointment"
-        decision_text = (
-            "Unfortunately, your appointment request has been rejected. "
-            "Please contact us if you would like to arrange another time."
-        )
-    else:
-        app.logger.warning("Invalid appointment decision email status.")
-        return
-
-    body = (
-        f"Hello {name},\n\n"
-        f"{decision_text}\n\n"
-        f"Service: {service}\n"
-        f"Barber: {barber}\n"
-        f"Date: {date_text}\n"
-        f"Time: {time_text}\n\n"
-        "Thank you for choosing BarberBook.\n\n"
-        "The BarberBook Team"
-    )
-
-    send_email_with_timeout(subject, email, body)
-
-app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=True,
-)
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
-DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
 
 # ==========================================
 # BARBERBOOK APPOINTMENT SETTINGS
