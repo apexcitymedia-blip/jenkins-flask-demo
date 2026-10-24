@@ -58,7 +58,31 @@ def send_booking_confirmation(name, email, service, barber, date_text, time_text
             "Booking was saved, but confirmation email sending failed."
         )
         
+def send_appointment_decision(
+    name, email, service, barber, date_text, time_text, status
+):
+    if status not in ("accepted", "rejected"):
+        app.logger.warning("Unknown appointment status: %s", status)
+        return
 
+    if status == "accepted":
+        subject = "Your BarberBook appointment is confirmed"
+        decision = "accepted"
+    else:
+        subject = "Update on your BarberBook appointment"
+        decision = "rejected"
+
+    body = (
+        f"Hi {name},\n\n"
+        f"Your appointment request has been {decision}.\n\n"
+        f"Service: {service}\n"
+        f"Barber: {barber}\n"
+        f"Date: {date_text}\n"
+        f"Time: {time_text}\n\n"
+        "Thank you for choosing BarberBook."
+    )
+
+    send_email_with_timeout(subject, email, body)
 
 def send_email_with_timeout(subject, email, body):
     api_key = os.environ.get("RESEND_API_KEY")
