@@ -61,6 +61,8 @@ def send_booking_confirmation(name, email, service, barber, date_text, time_text
 def send_appointment_decision(
     name, email, service, barber, date_text, time_text, status
 ):
+    status = status.strip().lower()
+
     if status not in ("accepted", "rejected"):
         app.logger.warning("Unknown appointment status: %s", status)
         return
