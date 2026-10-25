@@ -1,3 +1,17 @@
+import os
+import tempfile
+from datetime import date, timedelta
+
+_test_db = tempfile.NamedTemporaryFile(
+    prefix="barberbook_test_",
+    suffix=".db",
+    delete=False,
+)
+_test_db.close()
+
+os.environ.pop("DATABASE_URL", None)
+os.environ["DATABASE_PATH"] = _test_db.name
+
 from app import app
 
 
@@ -14,7 +28,7 @@ def test_booking_page():
     response = client.get("/book")
 
     assert response.status_code == 200
-    assert b"Make an Appointment" in response.data
+    assert b"Reserve your" in response.data
 
 
 def test_successful_booking():
@@ -27,7 +41,7 @@ def test_successful_booking():
             "email": "john@example.com",
             "service": "Haircut",
             "barber": "Alex",
-            "date": "2026-10-01",
+            "date": (date.today() + timedelta(days=7)).isoformat(),
             "time": "10:00",
         },
     )
@@ -52,6 +66,7 @@ def test_incomplete_booking():
 
 def test_booking_is_saved():
     client = app.test_client()
+    booking_date = (date.today() + timedelta(days=7)).isoformat()
 
     response = client.post(
         "/book",
@@ -60,7 +75,7 @@ def test_booking_is_saved():
             "email": "jane@example.com",
             "service": "Beard Trim",
             "barber": "Mike",
-            "date": "2026-10-02",
+            "date": booking_date,
             "time": "14:00",
         },
     )
@@ -69,22 +84,24 @@ def test_booking_is_saved():
 
     import sqlite3
 
-    conn = sqlite3.connect("barberbook.db")
-    appointment = conn.execute(
-        """
-        SELECT name, email, service, barber, date, time
-        FROM appointments
-        WHERE name = ?
-        """,
-        ("Jane",)
-    ).fetchone()
-    conn.close()
+    conn = sqlite3.connect(os.environ["DATABASE_PATH"])
+    try:
+        appointment = conn.execute(
+            """
+            SELECT name, email, service, barber, date, time
+            FROM appointments
+            WHERE name = ?
+            """,
+            ("Jane",),
+        ).fetchone()
+    finally:
+        conn.close()
 
     assert appointment == (
         "Jane",
         "jane@example.com",
         "Beard Trim",
         "Mike",
-        "2026-10-02",
+        booking_date,
         "14:00",
     )
