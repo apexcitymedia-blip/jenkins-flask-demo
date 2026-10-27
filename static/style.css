@@ -891,3 +891,54 @@ select:focus {
         padding: 25px 18px;
     }
 }
+/* ========================================
+   PREMIUM DARK & GOLD REFINEMENTS
+   ======================================== */
+
+::selection {
+    background: var(--gold);
+    color: var(--bg);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg {
+    max-width: 100%;
+}
+
+button,
+.button,
+.nav-button {
+    touch-action: manipulation;
+}
+
+@media (max-width: 620px) {
+    .navbar {
+        gap: 12px;
+    }
+
+    .nav-button {
+        min-height: 44px;
+        font-size: 10px;
+    }
+
+    .button,
+    .service-bottom a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .service-bottom {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+}
