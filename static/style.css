@@ -1105,3 +1105,117 @@ button,
 .services .service-note {
     color: #716e64;
 }
+/* ========================================
+   BARBERBOOK BOOKING PAGE — SAGE & IVORY
+   ======================================== */
+
+body.booking-page {
+    background: #f4f1e9;
+    color: #203b32;
+}
+
+.booking-page .navbar {
+    background: #203b32;
+    border-bottom: 1px solid #496557;
+}
+
+.booking-page .booking-section {
+    background: #f4f1e9;
+    padding: 65px 20px;
+}
+
+.booking-page .booking-card {
+    max-width: 680px;
+    padding: 48px;
+    background: #fffdf8;
+    border: 1px solid #e4e0d5;
+    border-radius: 18px;
+    box-shadow: 0 18px 55px rgba(32, 59, 50, 0.09);
+}
+
+.booking-page .booking-card h1,
+.booking-page .form-heading h2 {
+    color: #203b32;
+}
+
+.booking-page .booking-card h1 span {
+    color: #78927d;
+}
+
+.booking-page .booking-back,
+.booking-page .booking-description,
+.booking-page .booking-small-note,
+.booking-page .booking-privacy-note {
+    color: #68786d;
+}
+
+.booking-page .booking-back:hover {
+    color: #456b55;
+}
+
+.booking-page .eyebrow,
+.booking-page .form-heading > span {
+    color: #66836d;
+}
+
+.booking-page .booking-divider {
+    background: #e3e6dc;
+}
+
+.booking-page label {
+    color: #344e41;
+}
+
+.booking-page input,
+.booking-page select {
+    box-sizing: border-box;
+    background: #fff;
+    color: #203b32;
+    border: 1px solid #d7dfd5;
+    border-radius: 9px;
+    min-height: 48px;
+}
+
+.booking-page input::placeholder {
+    color: #9aaba0;
+}
+
+.booking-page input:focus,
+.booking-page select:focus {
+    border-color: #78927d;
+    outline: 2px solid rgba(120, 146, 125, 0.16);
+}
+
+.booking-page .form-heading > span {
+    border-color: #d7dfd5;
+    border-radius: 7px;
+}
+
+.booking-page .button {
+    background: #294b3c;
+    color: #fffdf8;
+    border: 1px solid #294b3c;
+    border-radius: 9px;
+    min-height: 52px;
+}
+
+.booking-page .button:hover {
+    background: #3b6550;
+}
+
+.booking-page .error {
+    background: #fff0ed;
+    color: #8c332a;
+    border-color: #e8b9b2;
+}
+
+.booking-page .booking-footer {
+    background: #203b32;
+    color: #fffdf8;
+}
+
+@media (max-width: 600px) {
+    .booking-page .booking-card {
+        padding: 30px 22px;
+    }
+}
