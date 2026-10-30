@@ -1219,3 +1219,128 @@ body.booking-page {
         padding: 30px 22px;
     }
 }
+/* ========================================
+   BARBERBOOK CONFIRMATION — MIDNIGHT & CHAMPAGNE
+   ======================================== */
+
+body.confirmation-page {
+    background: #101a2b;
+    color: #f5f0e6;
+    min-height: 100vh;
+}
+
+.confirmation-page nav {
+    background: #101a2b;
+    padding: 25px 8%;
+    border-bottom: 1px solid rgba(220, 195, 145, 0.2);
+}
+
+.confirmation-page .logo {
+    color: #e5cf9b;
+    letter-spacing: 3px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.confirmation-page .confirmation {
+    min-height: calc(100vh - 90px);
+    padding: 65px 20px;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(205, 174, 119, 0.13), transparent 60%),
+        #101a2b;
+}
+
+.confirmation-page .confirmation-card {
+    max-width: 590px;
+    padding: 55px 45px;
+    background: linear-gradient(145deg, #1b2940, #152238);
+    border: 1px solid rgba(220, 195, 145, 0.35);
+    border-radius: 18px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.confirmation-page .check {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d8bd86;
+    border-radius: 50%;
+    background: rgba(216, 189, 134, 0.1);
+    color: #e5cf9b;
+    font-size: 36px;
+}
+
+.confirmation-page .eyebrow {
+    color: #d8bd86;
+    letter-spacing: 3px;
+    font-size: 11px;
+}
+
+.confirmation-page h1 {
+    color: #fffaf0;
+    font-size: clamp(30px, 5vw, 42px);
+    margin: 18px 0;
+}
+
+.confirmation-page .confirmation-card > p:not(.eyebrow) {
+    color: #c1c9d4;
+    line-height: 1.8;
+}
+
+.confirmation-page .appointment-details {
+    margin: 30px 0;
+    padding: 22px 25px;
+    background: rgba(10, 20, 36, 0.55);
+    border: 1px solid rgba(220, 195, 145, 0.2);
+    border-radius: 12px;
+    text-align: left;
+}
+
+.confirmation-page .appointment-details p {
+    color: #e2e5eb;
+    padding: 10px 0;
+    margin: 0;
+    border-bottom: 1px solid rgba(220, 195, 145, 0.12);
+}
+
+.confirmation-page .appointment-details p:last-child {
+    border-bottom: none;
+}
+
+.confirmation-page .appointment-details strong {
+    color: #e5cf9b;
+}
+
+.confirmation-page .button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50px;
+    padding: 0 30px;
+    background: #d8bd86;
+    color: #152238;
+    border: 1px solid #d8bd86;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.25s ease;
+}
+
+.confirmation-page .button:hover {
+    background: #f0dfb9;
+    border-color: #f0dfb9;
+}
+
+@media (max-width: 600px) {
+    .confirmation-page .confirmation-card {
+        padding: 38px 22px;
+    }
+
+    .confirmation-page .appointment-details {
+        padding: 16px;
+    }
+}
