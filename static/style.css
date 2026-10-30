@@ -942,3 +942,128 @@ button,
         flex-wrap: wrap;
     }
 }
+
+/* ========================================
+   BARBERBOOK — LUXURY HOMEPAGE REFINEMENT
+   ======================================== */
+
+.services {
+    background:
+        radial-gradient(ellipse at 85% 15%, rgba(214,183,121,0.07), transparent 40%),
+        #151512;
+    color: var(--text);
+}
+
+.section-heading h2 {
+    color: var(--text);
+}
+
+.section-heading h2 span {
+    color: var(--gold);
+}
+
+.section-heading .eyebrow {
+    color: var(--gold);
+}
+
+.section-description {
+    color: var(--muted);
+}
+
+.service-card {
+    background: linear-gradient(145deg, #202019, #171713);
+    border: 1px solid var(--border);
+    color: var(--text);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.service-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(214,183,121,0.65);
+    box-shadow: 0 16px 38px rgba(0,0,0,0.28);
+}
+
+.service-card.featured {
+    background: linear-gradient(145deg, #302819, #1b1914);
+    border-color: var(--gold);
+}
+
+.service-number,
+.service-bottom a {
+    color: var(--gold);
+}
+
+.service-card p,
+.service-card.featured p {
+    color: #b8b2a5;
+}
+
+.service-bottom,
+.featured .service-bottom {
+    border-color: var(--border);
+}
+
+.service-note {
+    color: var(--gold);
+}
+
+
+/* BARBERBOOK PREMIUM IMAGE HERO */
+.hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    min-height: 680px;
+    padding: 100px 10%;
+    overflow: hidden;
+    background-image: url("/static/images/barberbook-hero.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(10, 10, 9, 0.94) 0%,
+        rgba(10, 10, 9, 0.78) 45%,
+        rgba(10, 10, 9, 0.25) 100%
+    );
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 610px;
+}
+
+.hero-art {
+    display: none;
+}
+
+.hero-index {
+    z-index: 2;
+}
+
+@media (max-width: 700px) {
+    .hero {
+        min-height: 620px;
+        padding: 80px 7% 90px;
+        background-position: center;
+    }
+
+    .hero::before {
+        background: linear-gradient(
+            90deg,
+            rgba(10, 10, 9, 0.90),
+            rgba(10, 10, 9, 0.62)
+        );
+    }
+}
+/* END BARBERBOOK PREMIUM IMAGE HERO */
