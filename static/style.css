@@ -1067,3 +1067,41 @@ button,
     }
 }
 /* END BARBERBOOK PREMIUM IMAGE HERO */
+
+/* RESTORE THE LIGHT SERVICES SECTION */
+.services {
+    background: #f2eee5;
+    color: #191914;
+}
+
+.services .section-heading h2 {
+    color: #191914;
+}
+
+.services .section-heading .eyebrow {
+    color: #887044;
+}
+
+.services .section-description,
+.services .service-note {
+    color: #716e64;
+}
+
+/* RESTORE THE LIGHT SERVICES SECTION */
+.services {
+    background: #f2eee5;
+    color: #191914;
+}
+
+.services .section-heading h2 {
+    color: #191914;
+}
+
+.services .section-heading .eyebrow {
+    color: #887044;
+}
+
+.services .section-description,
+.services .service-note {
+    color: #716e64;
+}
