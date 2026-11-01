@@ -58,6 +58,29 @@
             <h1>Appointment Dashboard</h1>
             <p>Manage BarberBook appointments.</p>
             <div class="admin-filters">
+                <div class="admin-stats">
+
+    <div class="stat-card">
+        <span class="stat-label">Total Appointments</span>
+        <strong>{{ total_appointments }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-label">Pending</span>
+        <strong>{{ pending_appointments }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-label">Accepted</span>
+        <strong>{{ accepted_appointments }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-label">Rejected</span>
+        <strong>{{ rejected_appointments }}</strong>
+    </div>
+
+</div>
     <input
         type="search"
         id="appointmentSearch"

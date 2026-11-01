@@ -226,7 +226,7 @@ def init_db():
                     ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'
                     """
                 )
-        conn.commit()
+            conn.commit()
     finally:
         conn.close()
 
@@ -554,14 +554,32 @@ def admin():
         ).fetchall()
     finally:
         conn.close()
-    
-        token = secrets.token_urlsafe(32)
+
+    total_appointments = len(appointments)
+    pending_appointments = sum(
+        1 for appointment in appointments
+        if appointment["status"] == "Pending"
+    )
+    accepted_appointments = sum(
+        1 for appointment in appointments
+        if appointment["status"] == "Accepted"
+    )
+    rejected_appointments = sum(
+        1 for appointment in appointments
+        if appointment["status"] == "Rejected"
+    )
+
+    token = secrets.token_urlsafe(32)
     session["admin_csrf_token"] = token
 
     return render_template(
         "admin.html",
         appointments=appointments,
-        csrf_token=token
+        csrf_token=token,
+        total_appointments=total_appointments,
+        pending_appointments=pending_appointments,
+        accepted_appointments=accepted_appointments,
+        rejected_appointments=rejected_appointments
     )
 
 @app.route(
