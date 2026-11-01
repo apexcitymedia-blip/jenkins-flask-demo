@@ -57,6 +57,31 @@
         <section class="booking-section">
             <h1>Appointment Dashboard</h1>
             <p>Manage BarberBook appointments.</p>
+            <div class="admin-filters">
+    <input
+        type="search"
+        id="appointmentSearch"
+        placeholder="Search customer or service..."
+        aria-label="Search appointments"
+    >
+
+    <select id="statusFilter" aria-label="Filter by status">
+        <option value="">All statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Accepted">Accepted</option>
+        <option value="Rejected">Rejected</option>
+    </select>
+
+    <input
+        type="date"
+        id="dateFilter"
+        aria-label="Filter by appointment date"
+    >
+
+    <button type="button" id="clearFilters">Clear filters</button>
+</div>
+
+<p id="filterResults" class="filter-results"></p>
 
             {% if appointments %}
                 <div class="table-wrapper">
@@ -74,7 +99,11 @@
 
                         <tbody>
                             {% for appointment in appointments %}
-                            <tr>
+<tr class="appointment-row"
+    data-customer="{{ appointment['name']|e }}"
+    data-service="{{ appointment['service']|e }}"
+    data-date="{{ appointment['date']|e }}"
+    data-status="{{ appointment['status']|e }}">
                                 <td>{{ appointment["id"] }}</td>
                                 <td>{{ appointment["name"] }}</td>
                                 <td>{{ appointment["service"] }}</td>
@@ -115,6 +144,66 @@
             {% endif %}
         </section>
     </main>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const search = document.getElementById("appointmentSearch");
+    const status = document.getElementById("statusFilter");
+    const date = document.getElementById("dateFilter");
+    const clear = document.getElementById("clearFilters");
+    const results = document.getElementById("filterResults");
+    const rows = document.querySelectorAll(".appointment-row");
 
+    function filterAppointments() {
+        const searchValue = search.value.toLowerCase().trim();
+        const statusValue = status.value.toLowerCase();
+        const dateValue = date.value;
+
+        let visibleCount = 0;
+
+        rows.forEach(function (row) {
+            const customer = row.dataset.customer.toLowerCase();
+            const service = row.dataset.service.toLowerCase();
+            const rowStatus = row.dataset.status.toLowerCase();
+            const rowDate = row.dataset.date;
+
+            const matchesSearch =
+                customer.includes(searchValue) ||
+                service.includes(searchValue);
+
+            const matchesStatus =
+                !statusValue || rowStatus === statusValue;
+
+            const matchesDate =
+                !dateValue || rowDate === dateValue;
+
+            const visible =
+                matchesSearch && matchesStatus && matchesDate;
+
+            row.hidden = !visible;
+
+            if (visible) {
+                visibleCount++;
+            }
+        });
+
+        results.textContent =
+            "Showing " + visibleCount + " of " + rows.length +
+            " appointments";
+    }
+
+    search.addEventListener("input", filterAppointments);
+    status.addEventListener("change", filterAppointments);
+    date.addEventListener("change", filterAppointments);
+
+    clear.addEventListener("click", function () {
+        search.value = "";
+        status.value = "";
+        date.value = "";
+        filterAppointments();
+    });
+
+    filterAppointments();
+});
+</script>
 </body>
 </html>
