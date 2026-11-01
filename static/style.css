@@ -1344,3 +1344,146 @@ body.confirmation-page {
         padding: 16px;
     }
 }
+/* BARBERBOOK ADMIN — GRAPHITE & TEAL */
+.admin-page {
+    min-height: 100vh;
+    background: #171d22;
+    color: #edf2f1;
+}
+
+.admin-page .site-header {
+    background: #10161b;
+    border-bottom: 1px solid #34434a;
+}
+
+.admin-page .logo {
+    color: #55d6c2;
+}
+
+.admin-page nav a {
+    color: #e4eceb;
+}
+
+.admin-page nav a:hover {
+    color: #55d6c2;
+}
+
+.admin-page main.container {
+    padding-top: 48px;
+    padding-bottom: 60px;
+}
+
+.admin-page .booking-section {
+    background: #202a30;
+    border: 1px solid #35464d;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
+}
+
+.admin-page h1 {
+    color: #f4f7f6;
+    margin-bottom: 8px;
+}
+
+.admin-page p {
+    color: #b9c8c7;
+}
+
+.admin-page .table-wrapper {
+    margin-top: 28px;
+    border: 1px solid #3a4b51;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+.admin-page table {
+    color: #edf2f1;
+    min-width: 650px;
+}
+
+.admin-page th {
+    background: #29383e;
+    color: #65dfcd;
+    font-weight: 600;
+    border-bottom: 1px solid #52666b;
+}
+
+.admin-page td {
+    background: #202a30;
+    color: #e1e9e8;
+    border-bottom: 1px solid #35464d;
+}
+
+.admin-page tbody tr:hover td {
+    background: #29383e;
+}
+
+.admin-page .action-buttons button {
+    border: 0;
+    border-radius: 7px;
+    padding: 9px 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.admin-page .action-buttons button[value="Accepted"] {
+    background: #168b79;
+    color: white;
+}
+
+.admin-page .action-buttons button[value="Accepted"]:hover {
+    background: #20a891;
+}
+
+.admin-page .action-buttons button[value="Rejected"] {
+    background: #963f4a;
+    color: white;
+}
+
+.admin-page .action-buttons button[value="Rejected"]:hover {
+    background: #b84e5b;
+}
+
+.admin-page .action-buttons {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+    .admin-page main.container {
+        padding-top: 24px;
+    }
+
+    .admin-page .booking-section {
+        padding: 20px 14px;
+    }
+
+    .admin-page h1 {
+        font-size: 26px;
+    }
+}
+/* ADMIN DASHBOARD — FULL-WIDTH LAYOUT */
+.admin-page .booking-section {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.admin-page .booking-section h1 {
+    max-width: none;
+    margin: 0 0 12px;
+}
+
+.admin-page .booking-section > p {
+    margin-bottom: 28px;
+}
+
+.admin-page .table-wrapper {
+    width: 100%;
+    margin-top: 0;
+}
+
+.admin-page table {
+    width: 100%;
+}
