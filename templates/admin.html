@@ -57,8 +57,7 @@
         <section class="booking-section">
             <h1>Appointment Dashboard</h1>
             <p>Manage BarberBook appointments.</p>
-            <div class="admin-filters">
-                <div class="admin-stats">
+                       <div class="admin-stats">
 
     <div class="stat-card">
         <span class="stat-label">Total Appointments</span>
@@ -80,7 +79,24 @@
         <strong>{{ rejected_appointments }}</strong>
     </div>
 
+    <div class="stat-card">
+        <span class="stat-label">Paid Appointments</span>
+        <strong>{{ paid_appointments }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-label">Total Revenue</span>
+        <strong>€{{ "%.2f"|format(total_revenue) }}</strong>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-label">Accepted — Unpaid Value</span>
+        <strong>€{{ "%.2f"|format(unpaid_accepted_value) }}</strong>
+    </div>
+
 </div>
+
+<div class="admin-filters">
     <input
         type="search"
         id="appointmentSearch"
@@ -93,6 +109,7 @@
         <option value="Pending">Pending</option>
         <option value="Accepted">Accepted</option>
         <option value="Rejected">Rejected</option>
+        <option value="Paid">Paid</option>
     </select>
 
     <input
@@ -133,32 +150,36 @@
                                 <td>{{ appointment["date"] }}</td>
                                 <td>{{ appointment["status"] }}</td>
                                 <td>
-                                    {% if appointment["status"] == "Pending" %}
-                                    <div class="action-buttons">
-                                        <form class="status-form" method="post"
-                                              action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
-                                            <input type="hidden"
-                                                   name="csrf_token"
-                                                   value="{{ csrf_token }}">
-                                            <button type="submit" name="status"
-                                                    value="Accepted">Accept</button>
-                                        </form>
+                          {% if appointment["status"] == "Pending" %}
+    <div class="action-buttons">
+        <form class="status-form" method="post"
+              action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" name="status"
+                    value="Accepted">Accept</button>
+        </form>
 
-                                        <form class="status-form" method="post"
-                                              action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
-                                            <input type="hidden"
-                                                   name="csrf_token"
-                                                   value="{{ csrf_token }}">
-                                            <button type="submit" name="status"
-                                                    value="Rejected">Reject</button>
-                                        </form>
-                                    </div>
-                                    {% else %}
-                                        No action needed
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
+        <form class="status-form" method="post"
+              action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" name="status"
+                    value="Rejected">Reject</button>
+        </form>
+    </div>
+
+{% elif appointment["status"] == "Accepted" %}
+    <form class="status-form" method="post"
+          action="{{ url_for('mark_appointment_paid', appointment_id=appointment['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit">Mark as Paid</button>
+    </form>
+
+{% else %}
+    No action needed
+{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
                         </tbody>
                     </table>
                 </div>

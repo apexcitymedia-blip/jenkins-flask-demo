@@ -141,11 +141,16 @@ SHOP_TIMEZONE = ZoneInfo("Europe/Rome")
 
 OPENING_TIME = time(7, 0)
 CLOSING_TIME = time(23, 0)
-
 SERVICE_DURATIONS = {
     "Haircut": 30,
     "Beard Trim": 15,
     "Hair + Beard": 45,
+}
+
+SERVICE_PRICES = {
+    "Haircut": 10,
+    "Beard Trim": 5,
+    "Hair + Beard": 15,
 }
 
 ALLOWED_BARBERS = {"Alex", "Mike", "James"}
@@ -568,6 +573,22 @@ def admin():
         1 for appointment in appointments
         if appointment["status"] == "Rejected"
     )
+    paid_appointments = sum(
+        1 for appointment in appointments
+        if appointment["status"] == "Paid"
+    )
+
+    total_revenue = sum(
+        SERVICE_PRICES.get(appointment["service"], 0)
+        for appointment in appointments
+        if appointment["status"] == "Paid"
+    )
+
+    unpaid_accepted_value = sum(
+        SERVICE_PRICES.get(appointment["service"], 0)
+        for appointment in appointments
+        if appointment["status"] == "Accepted"
+    )
 
     token = secrets.token_urlsafe(32)
     session["admin_csrf_token"] = token
@@ -579,7 +600,10 @@ def admin():
         total_appointments=total_appointments,
         pending_appointments=pending_appointments,
         accepted_appointments=accepted_appointments,
-        rejected_appointments=rejected_appointments
+                rejected_appointments=rejected_appointments,
+        paid_appointments=paid_appointments,
+        total_revenue=total_revenue,
+        unpaid_accepted_value=unpaid_accepted_value
     )
 
 @app.route(
@@ -658,7 +682,6 @@ def update_appointment_status(appointment_id):
     finally:
         conn.close()
 
-    session.pop("admin_csrf_token", None)
 
     
     try:
@@ -678,6 +701,63 @@ def update_appointment_status(appointment_id):
     except Exception:
         app.logger.exception("Could not start email notification.")
 
+    return redirect(url_for("admin"))
+
+
+@app.route(
+    "/admin/appointment/<int:appointment_id>/paid",
+    methods=["POST"]
+)
+def mark_appointment_paid(appointment_id):
+    if not admin_configured():
+        return "Admin login is not configured.", 503
+
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    submitted_token = request.form.get("csrf_token", "")
+    saved_token = session.get("admin_csrf_token", "")
+
+    if (
+        not saved_token
+        or not hmac.compare_digest(submitted_token, saved_token)
+    ):
+        return "Invalid form token. Please reload the dashboard.", 400
+
+    conn = get_db_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        result = conn.execute(
+            f"""
+            UPDATE appointments
+            SET status = 'Paid'
+            WHERE id = {placeholder}
+              AND status = 'Accepted'
+            """,
+            (appointment_id,)
+        )
+
+        if result.rowcount == 0:
+            conn.rollback()
+            return (
+                "Appointment not found or not eligible for payment. "
+                "Please reload the dashboard.",
+                409
+            )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Appointment payment update failed.")
+        return "Could not record payment. Please try again.", 500
+
+    finally:
+        conn.close()
+
+    session.pop("admin_csrf_token", None)
     return redirect(url_for("admin"))
 
 
