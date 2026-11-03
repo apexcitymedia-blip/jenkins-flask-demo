@@ -589,6 +589,15 @@ def admin():
         for appointment in appointments
         if appointment["status"] == "Accepted"
     )
+    revenue_by_service = {
+        service: sum(
+            SERVICE_PRICES.get(appointment["service"], 0)
+            for appointment in appointments
+            if appointment["status"] == "Paid"
+            and appointment["service"] == service
+        )
+        for service in SERVICE_PRICES
+    }
 
     token = secrets.token_urlsafe(32)
     session["admin_csrf_token"] = token
@@ -603,7 +612,8 @@ def admin():
                 rejected_appointments=rejected_appointments,
         paid_appointments=paid_appointments,
         total_revenue=total_revenue,
-        unpaid_accepted_value=unpaid_accepted_value
+        unpaid_accepted_value=unpaid_accepted_value,
+        revenue_by_service=revenue_by_service
     )
 
 @app.route(

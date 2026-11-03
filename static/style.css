@@ -1606,3 +1606,34 @@ body.confirmation-page {
         grid-template-columns: 1fr;
     }
 }
+/* Revenue by Service */
+.admin-page .revenue-breakdown {
+    background: #202a2b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 24px 0;
+}
+
+.admin-page .revenue-breakdown h2 {
+    color: #ffffff;
+    margin: 0 0 16px;
+    font-size: 1.2rem;
+}
+
+.admin-page .revenue-service-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #dce5e3;
+}
+
+.admin-page .revenue-service-row:last-child {
+    border-bottom: none;
+}
+
+.admin-page .revenue-service-row strong {
+    color: #55d6be;
+}
