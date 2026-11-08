@@ -189,14 +189,29 @@
 </div>
 
 <p id="filterResults" class="filter-results"></p>
+<form id="bulk-delete-form"
+      method="POST"
+      action="{{ url_for('delete_selected_appointments') }}"
+      onsubmit="return confirm('Are you sure you want to permanently delete the selected appointments?');">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <button type="submit" class="delete-selected-btn">
+        Delete Selected
+    </button>
+</form>
 
             {% if appointments %}
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Customer</th>
+    <th>
+        <input type="checkbox" id="select-all-appointments"
+               title="Select all visible appointments">
+    </th>
+    <th>ID</th>
+    <th>Customer</th>
                                 <th>Phone</th>
                                 <th>Service</th>
                                 <th>Date</th>
@@ -212,7 +227,14 @@
     data-service="{{ appointment['service']|e }}"
     data-date="{{ appointment['date']|e }}"
     data-status="{{ appointment['status']|e }}">
-                                <td>{{ appointment["id"] }}</td>
+                                <td>
+    <input type="checkbox"
+           class="appointment-checkbox"
+           name="appointment_ids"
+           value="{{ appointment['id'] }}"
+           form="bulk-delete-form">
+</td>
+<td>{{ appointment["id"] }}</td>
                                 <td>{{ appointment["name"] }}</td>
                                 <td>
     {% if appointment["phone"] %}
@@ -273,6 +295,44 @@ document.addEventListener("DOMContentLoaded", function () {
     const clear = document.getElementById("clearFilters");
     const results = document.getElementById("filterResults");
     const rows = document.querySelectorAll(".appointment-row");
+        const selectAll = document.getElementById("select-all-appointments");
+    const checkboxes = document.querySelectorAll(".appointment-checkbox");
+    const deleteButton = document.querySelector(".delete-selected-btn");
+
+    function updateDeleteButton() {
+        const selectedCount = Array.from(checkboxes).filter(
+            checkbox => checkbox.checked
+        ).length;
+
+        deleteButton.disabled = selectedCount === 0;
+        deleteButton.textContent = selectedCount > 0
+            ? "Delete Selected (" + selectedCount + ")"
+            : "Delete Selected";
+    }
+
+    selectAll.addEventListener("change", function () {
+        checkboxes.forEach(function (checkbox) {
+            if (!checkbox.closest("tr").hidden) {
+                checkbox.checked = selectAll.checked;
+            }
+        });
+
+        updateDeleteButton();
+    });
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+            const visibleCheckboxes = Array.from(checkboxes).filter(
+                item => !item.closest("tr").hidden
+            );
+
+            selectAll.checked =
+                visibleCheckboxes.length > 0 &&
+                visibleCheckboxes.every(item => item.checked);
+
+            updateDeleteButton();
+        });
+    });
 
     function filterAppointments() {
         const searchValue = search.value.toLowerCase().trim();

@@ -865,7 +865,68 @@ WHERE id = {placeholder}
     session.pop("admin_csrf_token", None)
     return redirect(url_for("admin"))
 
+# ==========================================
+# ADMIN BULK DELETE
+# ==========================================
 
+@app.route("/admin/appointments/delete", methods=["POST"])
+def delete_selected_appointments():
+    if not admin_configured():
+        return "Admin login is not configured.", 503
+
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    submitted_token = request.form.get("csrf_token", "")
+    saved_token = session.get("admin_csrf_token", "")
+
+    if (
+        not saved_token
+        or not hmac.compare_digest(submitted_token, saved_token)
+    ):
+        return "Invalid form token. Please reload the dashboard.", 400
+
+    raw_ids = request.form.getlist("appointment_ids")
+
+    appointment_ids = []
+
+    for raw_id in raw_ids:
+        try:
+            appointment_id = int(raw_id)
+            if appointment_id > 0 and appointment_id not in appointment_ids:
+                appointment_ids.append(appointment_id)
+        except (ValueError, TypeError):
+            continue
+
+    if not appointment_ids:
+        session.pop("admin_csrf_token", None)
+        return redirect(url_for("admin"))
+
+    conn = get_db_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+        placeholders = ", ".join(
+            [placeholder] * len(appointment_ids)
+        )
+
+        conn.execute(
+            f"DELETE FROM appointments WHERE id IN ({placeholders})",
+            tuple(appointment_ids)
+        )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Bulk appointment deletion failed.")
+        return "Could not delete appointments. Please try again.", 500
+
+    finally:
+        conn.close()
+
+    session.pop("admin_csrf_token", None)
+    return redirect(url_for("admin"))
 
 # ==========================================
 # ADMIN LOGOUT
