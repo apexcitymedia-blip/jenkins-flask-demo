@@ -95,9 +95,66 @@
     </div>
 
 </div>
-<section class="revenue-breakdown">
-    <h2>Revenue by Service</h2>
+<section class="monthly-income">
+    <h2>Monthly Income Report</h2>
 
+    <form method="get" action="{{ url_for('admin') }}">
+        <label for="month">Select month</label>
+        <input
+            type="month"
+            id="month"
+            name="month"
+            value="{{ selected_month }}"
+        >
+        <button type="submit">View Report</button>
+    </form>
+
+    <div class="monthly-income-stats">
+        <div>
+            <span>Monthly Revenue</span>
+            <strong>€{{ "%.2f"|format(selected_month_revenue) }}</strong>
+        </div>
+
+        <div>
+            <span>Payments Received</span>
+            <strong>{{ selected_month_payments }}</strong>
+        </div>
+
+        <div>
+            <span>Previous Month Revenue</span>
+            <strong>€{{ "%.2f"|format(previous_month_revenue) }}</strong>
+        </div>
+    </div>
+
+    <h3>Revenue by Service</h3>
+
+    {% for service in ["Haircut", "Beard Trim", "Hair + Beard"] %}
+        <div class="revenue-service-row">
+            <span>{{ service }}</span>
+            <strong>
+                €{{ "%.2f"|format(selected_month_services.get(service, 0)) }}
+            </strong>
+        </div>
+    {% endfor %}
+</section>
+<section class="monthly-chart">
+    <h2>Monthly Revenue Overview</h2>
+
+    {% if selected_month_revenue == 0 %}
+        <p>No recorded payments for {{ selected_month }}.</p>
+    {% else %}
+        <div class="chart-row">
+            <span>{{ selected_month }}</span>
+
+            <div class="chart-track">
+                <div class="chart-bar" style="width: 100%;"></div>
+            </div>
+
+            <strong>€{{ "%.2f"|format(selected_month_revenue) }}</strong>
+        </div>
+    {% endif %}
+</section>
+<h2>All-Time Revenue by Service</h2>
     {% for service, revenue in revenue_by_service.items() %}
     <div class="revenue-service-row">
         <span>{{ service }}</span>
@@ -140,6 +197,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Customer</th>
+                                <th>Phone</th>
                                 <th>Service</th>
                                 <th>Date</th>
                                 <th>Status</th>
@@ -156,6 +214,15 @@
     data-status="{{ appointment['status']|e }}">
                                 <td>{{ appointment["id"] }}</td>
                                 <td>{{ appointment["name"] }}</td>
+                                <td>
+    {% if appointment["phone"] %}
+        <a class="phone-link" href="tel:{{ appointment['phone'] }}">
+            {{ appointment["phone"] }}
+        </a>
+    {% else %}
+        —
+    {% endif %}
+</td>
                                 <td>{{ appointment["service"] }}</td>
                                 <td>{{ appointment["date"] }}</td>
                                 <td>{{ appointment["status"] }}</td>
@@ -261,3 +328,4 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 </body>
 </html>
+

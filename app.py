@@ -23,6 +23,7 @@ app = Flask(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 DATABASE = os.environ.get("DATABASE_PATH", "barberbook.db")
+print("BarberBook database file:", os.path.abspath(DATABASE) if not DATABASE_URL else "PostgreSQL")
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config.update(
     MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
@@ -197,6 +198,29 @@ def init_db():
                 )
                 """
             )
+
+            conn.execute(
+                """
+                ALTER TABLE appointments
+                ADD COLUMN IF NOT EXISTS status
+                TEXT NOT NULL DEFAULT 'Pending'
+                """
+            )
+
+            conn.execute(
+                """
+                ALTER TABLE appointments
+                ADD COLUMN IF NOT EXISTS paid_at TEXT
+                """
+            )
+
+            conn.execute(
+                """
+                ALTER TABLE appointments
+                ADD COLUMN IF NOT EXISTS phone TEXT
+                """
+            )
+
         else:
             conn.execute(
                 """
@@ -211,15 +235,7 @@ def init_db():
                 )
                 """
             )
-        if DATABASE_URL:
-            conn.execute(
-                """
-                ALTER TABLE appointments
-                ADD COLUMN IF NOT EXISTS status
-                TEXT NOT NULL DEFAULT 'Pending'
-                """
-            )
-        else:
+
             columns = conn.execute(
                 "PRAGMA table_info(appointments)"
             ).fetchall()
@@ -231,7 +247,25 @@ def init_db():
                     ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'
                     """
                 )
-            conn.commit()
+
+            if not any(column["name"] == "paid_at" for column in columns):
+                conn.execute(
+                    """
+                    ALTER TABLE appointments
+                    ADD COLUMN paid_at TEXT
+                    """
+                )
+
+            if not any(column["name"] == "phone" for column in columns):
+                conn.execute(
+                    """
+                    ALTER TABLE appointments
+                    ADD COLUMN phone TEXT
+                    """
+                )
+
+        conn.commit()
+
     finally:
         conn.close()
 
@@ -354,6 +388,7 @@ def book():
 
     name = request.form.get("name", "").strip()
     email = request.form.get("email", "").strip()
+    phone = request.form.get("phone", "").strip()
     service = request.form.get("service", "").strip()
     barber = request.form.get("barber", "").strip()
     date_text = request.form.get("date", "").strip()
@@ -497,14 +532,16 @@ def book():
         conn.execute(
             f"""
             INSERT INTO appointments
-                (name, email, service, barber, date, time)
+                (name, email, phone, service, barber, date, time)
             VALUES
                 ({placeholder}, {placeholder}, {placeholder},
-                 {placeholder}, {placeholder}, {placeholder})
+                 {placeholder}, {placeholder}, {placeholder},
+                 {placeholder})
             """,
             (
                 name,
                 email,
+                phone,
                 service,
                 barber,
                 date_text,
@@ -598,6 +635,56 @@ def admin():
         )
         for service in SERVICE_PRICES
     }
+    # Monthly revenue based on actual payment date
+    monthly_revenue = {}
+    monthly_paid_counts = {}
+    monthly_service_revenue = {}
+
+    for appointment in appointments:
+        if appointment["status"] == "Paid" and appointment["paid_at"]:
+            month_key = str(appointment["paid_at"])[:7]
+            service = appointment["service"]
+            price = SERVICE_PRICES.get(service, 0)
+
+            monthly_revenue[month_key] = (
+                monthly_revenue.get(month_key, 0) + price
+            )
+
+            monthly_paid_counts[month_key] = (
+                monthly_paid_counts.get(month_key, 0) + 1
+            )
+
+            if month_key not in monthly_service_revenue:
+                monthly_service_revenue[month_key] = {}
+
+            monthly_service_revenue[month_key][service] = (
+                monthly_service_revenue[month_key].get(service, 0) + price
+            )
+
+    current_month = datetime.now(SHOP_TIMEZONE).strftime("%Y-%m")
+    selected_month = request.args.get("month", current_month)
+
+    if (
+        len(selected_month) != 7
+        or selected_month[4] != "-"
+        or not selected_month[:4].isdigit()
+        or not selected_month[5:].isdigit()
+        or not 1 <= int(selected_month[5:]) <= 12
+    ):
+        selected_month = current_month
+
+    year, month = map(int, selected_month.split("-"))
+    previous_month = (
+        f"{year - 1}-12" if month == 1
+        else f"{year}-{month - 1:02d}"
+    )
+
+    selected_month_revenue = monthly_revenue.get(selected_month, 0)
+    selected_month_payments = monthly_paid_counts.get(selected_month, 0)
+    previous_month_revenue = monthly_revenue.get(previous_month, 0)
+    selected_month_services = monthly_service_revenue.get(
+        selected_month, {}
+    )
 
     token = secrets.token_urlsafe(32)
     session["admin_csrf_token"] = token
@@ -613,7 +700,13 @@ def admin():
         paid_appointments=paid_appointments,
         total_revenue=total_revenue,
         unpaid_accepted_value=unpaid_accepted_value,
-        revenue_by_service=revenue_by_service
+revenue_by_service=revenue_by_service,
+monthly_revenue=monthly_revenue,
+selected_month=selected_month,
+selected_month_revenue=selected_month_revenue,
+selected_month_payments=selected_month_payments,
+previous_month_revenue=previous_month_revenue,
+selected_month_services=selected_month_services
     )
 
 @app.route(
@@ -721,6 +814,7 @@ def update_appointment_status(appointment_id):
 def mark_appointment_paid(appointment_id):
     if not admin_configured():
         return "Admin login is not configured.", 503
+    paid_at = datetime.now(SHOP_TIMEZONE).isoformat(timespec="seconds")
 
     if not session.get("admin_logged_in"):
         return redirect(url_for("login"))
@@ -742,11 +836,12 @@ def mark_appointment_paid(appointment_id):
         result = conn.execute(
             f"""
             UPDATE appointments
-            SET status = 'Paid'
-            WHERE id = {placeholder}
-              AND status = 'Accepted'
+SET status = 'Paid',
+    paid_at = {placeholder}
+WHERE id = {placeholder}
+  AND status = 'Accepted'
             """,
-            (appointment_id,)
+            (paid_at, appointment_id)
         )
 
         if result.rowcount == 0:

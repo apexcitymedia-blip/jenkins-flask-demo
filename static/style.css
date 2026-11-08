@@ -1637,3 +1637,153 @@ body.confirmation-page {
 .admin-page .revenue-service-row strong {
     color: #55d6be;
 }
+/* Monthly Income Report */
+.admin-page .monthly-income {
+    background: #202a2b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 22px;
+    margin: 24px 0;
+}
+
+.admin-page .monthly-income h2,
+.admin-page .monthly-income h3 {
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+.admin-page .monthly-income form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.admin-page .monthly-income label {
+    color: #dce5e3;
+}
+
+.admin-page .monthly-income input,
+.admin-page .monthly-income button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.admin-page .monthly-income-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.admin-page .monthly-income-stats div {
+    background: #293536;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-page .monthly-income-stats span {
+    color: #b8c8c4;
+    font-size: 0.9rem;
+}
+
+.admin-page .monthly-income-stats strong {
+    color: #55d6be;
+    font-size: 1.5rem;
+}
+/* Monthly Report Month Selector */
+.admin-page .monthly-income input[type="month"] {
+    background: #ffffff;
+    color: #202a2b;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 42px;
+}
+
+.admin-page .monthly-income input[type="month"]:focus {
+    outline: 2px solid #55d6be;
+    outline-offset: 2px;
+}
+
+/* ========================================
+   MONTHLY REVENUE OVERVIEW CHART
+   ======================================== */
+
+.monthly-chart {
+    background: linear-gradient(145deg, #202a2b, #172122);
+    border: 1px solid rgba(85, 214, 190, 0.25);
+    border-radius: 16px;
+    padding: 26px;
+    margin: 24px 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.monthly-chart h2 {
+    color: #ffffff;
+    font-size: 1.35rem;
+    margin-bottom: 24px;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 95px;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.chart-row span {
+    color: #dce5e3;
+    font-weight: 600;
+}
+
+.chart-row strong {
+    color: #55d6be;
+    text-align: right;
+    font-size: 1rem;
+}
+
+.chart-track {
+    background: #354344;
+    height: 20px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.chart-bar {
+    background: linear-gradient(90deg, #299f91, #55d6be);
+    height: 100%;
+    border-radius: 20px;
+    min-width: 5px;
+    box-shadow: 0 0 12px rgba(85, 214, 190, 0.35);
+}
+
+.monthly-chart p {
+    color: #b8c8c4;
+}
+
+@media (max-width: 600px) {
+    .monthly-chart {
+        padding: 16px;
+    }
+
+    .chart-row {
+        grid-template-columns: 75px 1fr 75px;
+        gap: 8px;
+    }
+}
+.phone-link {
+    color: #20c9b5 !important;
+    text-decoration: underline !important;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.phone-link:hover {
+    color: #ffffff !important;
+}
