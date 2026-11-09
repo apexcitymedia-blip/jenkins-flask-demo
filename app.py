@@ -213,6 +213,12 @@ def init_db():
                 ADD COLUMN IF NOT EXISTS paid_at TEXT
                 """
             )
+            conn.execute(
+                """
+                ALTER TABLE appointments
+                ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(10, 2)
+                """
+            )
 
             conn.execute(
                 """
@@ -253,6 +259,14 @@ def init_db():
                     """
                     ALTER TABLE appointments
                     ADD COLUMN paid_at TEXT
+                    """
+                )
+
+            if not any(column["name"] == "paid_amount" for column in columns):
+                conn.execute(
+                    """
+                    ALTER TABLE appointments
+                    ADD COLUMN paid_amount NUMERIC(10, 2)
                     """
                 )
 
@@ -614,9 +628,17 @@ def admin():
         1 for appointment in appointments
         if appointment["status"] == "Paid"
     )
+    def recorded_amount(appointment):
+        saved_amount = appointment["paid_amount"]
+
+        if saved_amount is not None:
+            return float(saved_amount)
+
+        # Fallback for older payments without a saved amount
+        return float(SERVICE_PRICES.get(appointment["service"], 0))
 
     total_revenue = sum(
-        SERVICE_PRICES.get(appointment["service"], 0)
+        recorded_amount(appointment)
         for appointment in appointments
         if appointment["status"] == "Paid"
     )
@@ -626,9 +648,10 @@ def admin():
         for appointment in appointments
         if appointment["status"] == "Accepted"
     )
+
     revenue_by_service = {
         service: sum(
-            SERVICE_PRICES.get(appointment["service"], 0)
+            recorded_amount(appointment)
             for appointment in appointments
             if appointment["status"] == "Paid"
             and appointment["service"] == service
@@ -644,7 +667,7 @@ def admin():
         if appointment["status"] == "Paid" and appointment["paid_at"]:
             month_key = str(appointment["paid_at"])[:7]
             service = appointment["service"]
-            price = SERVICE_PRICES.get(service, 0)
+            price = recorded_amount(appointment)
 
             monthly_revenue[month_key] = (
                 monthly_revenue.get(month_key, 0) + price
@@ -806,14 +829,15 @@ def update_appointment_status(appointment_id):
 
     return redirect(url_for("admin"))
 
+# ==========================================
+# ADMIN BULK DELETE
+# ==========================================
 
-@app.route(
-    "/admin/appointment/<int:appointment_id>/paid",
-    methods=["POST"]
-)
+@app.route("/admin/appointment/<int:appointment_id>/paid", methods=["POST"])
 def mark_appointment_paid(appointment_id):
     if not admin_configured():
         return "Admin login is not configured.", 503
+
     paid_at = datetime.now(SHOP_TIMEZONE).isoformat(timespec="seconds")
 
     if not session.get("admin_logged_in"):
@@ -833,15 +857,36 @@ def mark_appointment_paid(appointment_id):
     try:
         placeholder = "%s" if DATABASE_URL else "?"
 
+        appointment = conn.execute(
+            f"""
+            SELECT service
+            FROM appointments
+            WHERE id = {placeholder}
+              AND status = 'Accepted'
+            """,
+            (appointment_id,)
+        ).fetchone()
+
+        if appointment is None:
+            conn.rollback()
+            return (
+                "Appointment not found or not eligible for payment. "
+                "Please reload the dashboard.",
+                409
+            )
+
+        paid_amount = SERVICE_PRICES.get(appointment["service"], 0)
+
         result = conn.execute(
             f"""
             UPDATE appointments
-SET status = 'Paid',
-    paid_at = {placeholder}
-WHERE id = {placeholder}
-  AND status = 'Accepted'
+            SET status = 'Paid',
+                paid_at = {placeholder},
+                paid_amount = {placeholder}
+            WHERE id = {placeholder}
+              AND status = 'Accepted'
             """,
-            (paid_at, appointment_id)
+            (paid_at, paid_amount, appointment_id)
         )
 
         if result.rowcount == 0:
@@ -864,43 +909,6 @@ WHERE id = {placeholder}
 
     session.pop("admin_csrf_token", None)
     return redirect(url_for("admin"))
-
-# ==========================================
-# ADMIN BULK DELETE
-# ==========================================
-
-@app.route("/admin/appointments/delete", methods=["POST"])
-def delete_selected_appointments():
-    if not admin_configured():
-        return "Admin login is not configured.", 503
-
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("login"))
-
-    submitted_token = request.form.get("csrf_token", "")
-    saved_token = session.get("admin_csrf_token", "")
-
-    if (
-        not saved_token
-        or not hmac.compare_digest(submitted_token, saved_token)
-    ):
-        return "Invalid form token. Please reload the dashboard.", 400
-
-    raw_ids = request.form.getlist("appointment_ids")
-
-    appointment_ids = []
-
-    for raw_id in raw_ids:
-        try:
-            appointment_id = int(raw_id)
-            if appointment_id > 0 and appointment_id not in appointment_ids:
-                appointment_ids.append(appointment_id)
-        except (ValueError, TypeError):
-            continue
-
-    if not appointment_ids:
-        session.pop("admin_csrf_token", None)
-        return redirect(url_for("admin"))
 
     conn = get_db_connection()
 
