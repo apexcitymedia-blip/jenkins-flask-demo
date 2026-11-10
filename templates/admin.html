@@ -360,11 +360,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesDate =
                 !dateValue || rowDate === dateValue;
 
-            const matchesMonth =
-                !monthValue || row.dataset.paidMonth === monthValue;
-
             const visible =
-                matchesSearch && matchesStatus && matchesDate && matchesMonth;
+                matchesSearch && matchesStatus && matchesDate;
 
             row.hidden = !visible;
 

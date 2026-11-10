@@ -719,7 +719,7 @@ def admin():
 
     return render_template(
         "admin.html",
-        appointments=filtered_appointments,
+appointments=appointments,
         csrf_token=token,
         total_appointments=total_appointments,
         pending_appointments=pending_appointments,
