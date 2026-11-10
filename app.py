@@ -708,13 +708,18 @@ def admin():
     selected_month_services = monthly_service_revenue.get(
         selected_month, {}
     )
+    filtered_appointments = [
+    appointment for appointment in appointments
+    if appointment["paid_at"]
+    and str(appointment["paid_at"])[:7] == selected_month
+]
 
     token = secrets.token_urlsafe(32)
     session["admin_csrf_token"] = token
 
     return render_template(
         "admin.html",
-        appointments=appointments,
+        appointments=filtered_appointments,
         csrf_token=token,
         total_appointments=total_appointments,
         pending_appointments=pending_appointments,

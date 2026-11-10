@@ -226,7 +226,8 @@
     data-customer="{{ appointment['name']|e }}"
     data-service="{{ appointment['service']|e }}"
     data-date="{{ appointment['date']|e }}"
-    data-status="{{ appointment['status']|e }}">
+    data-status="{{ appointment['status']|e }}"
+data-paid-month="{{ (appointment['paid_at'] or '')[:7] }}">
                                 <td>
     <input type="checkbox"
            class="appointment-checkbox"
@@ -283,7 +284,7 @@
                     </table>
                 </div>
             {% else %}
-                <p>No appointments yet.</p>
+<p>No appointments with payments recorded in {{ selected_month }}.</p>
             {% endif %}
         </section>
     </main>
@@ -292,6 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const search = document.getElementById("appointmentSearch");
     const status = document.getElementById("statusFilter");
     const date = document.getElementById("dateFilter");
+    const month = document.getElementById("month");
     const clear = document.getElementById("clearFilters");
     const results = document.getElementById("filterResults");
     const rows = document.querySelectorAll(".appointment-row");
@@ -338,6 +340,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const searchValue = search.value.toLowerCase().trim();
         const statusValue = status.value.toLowerCase();
         const dateValue = date.value;
+        const monthValue = month.value;
 
         let visibleCount = 0;
 
@@ -357,8 +360,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesDate =
                 !dateValue || rowDate === dateValue;
 
+            const matchesMonth =
+                !monthValue || row.dataset.paidMonth === monthValue;
+
             const visible =
-                matchesSearch && matchesStatus && matchesDate;
+                matchesSearch && matchesStatus && matchesDate && matchesMonth;
 
             row.hidden = !visible;
 
@@ -375,6 +381,9 @@ document.addEventListener("DOMContentLoaded", function () {
     search.addEventListener("input", filterAppointments);
     status.addEventListener("change", filterAppointments);
     date.addEventListener("change", filterAppointments);
+    month.addEventListener("change", function () {
+        month.form.requestSubmit();
+    });
 
     clear.addEventListener("click", function () {
         search.value = "";
