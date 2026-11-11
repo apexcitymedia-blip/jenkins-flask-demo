@@ -975,6 +975,226 @@ def delete_selected_appointments():
     return redirect(url_for("admin"))
 
 # ==========================================
+# EDIT APPOINTMENT
+# ==========================================
+
+@app.route(
+    "/admin/appointment/<int:appointment_id>/edit",
+    methods=["GET", "POST"]
+)
+def edit_appointment(appointment_id):
+    if not admin_configured():
+        return "Admin login is not configured.", 503
+
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        submitted_token = request.form.get("csrf_token", "")
+        saved_token = session.get("admin_csrf_token", "")
+
+        if (
+            not saved_token
+            or not hmac.compare_digest(submitted_token, saved_token)
+        ):
+            return "Invalid form token. Please reload the dashboard.", 400
+
+    conn = get_db_connection()
+
+    try:
+        placeholder = "%s" if DATABASE_URL else "?"
+
+        if request.method == "POST" and not DATABASE_URL:
+            conn.execute("BEGIN IMMEDIATE")
+
+        appointment = conn.execute(
+            f"""
+            SELECT id, name, phone, service, barber, date, time, status
+            FROM appointments
+            WHERE id = {placeholder}
+              AND status IN ('Pending', 'Accepted')
+            """,
+            (appointment_id,)
+        ).fetchone()
+
+        if appointment is None:
+            return (
+                "Appointment not found or cannot be edited. "
+                "Paid and rejected appointments are locked.",
+                409
+            )
+
+        appointment = dict(appointment)
+        appointment["date"] = str(appointment["date"])[:10]
+        appointment["time"] = str(appointment["time"])[:5]
+
+        if request.method == "GET":
+            return render_template(
+                "edit_appointment.html",
+                appointment=appointment,
+                barbers=sorted(ALLOWED_BARBERS),
+                csrf_token=session.get("admin_csrf_token")
+            )
+
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        service = request.form.get("service", "").strip()
+        barber = request.form.get("barber", "").strip()
+        date_text = request.form.get("date", "").strip()
+        time_text = request.form.get("time", "").strip()
+
+        updated = dict(appointment)
+        updated.update({
+            "name": name,
+            "phone": phone,
+            "service": service,
+            "barber": barber,
+            "date": date_text,
+            "time": time_text
+        })
+
+        def edit_error(message):
+            return render_template(
+                "edit_appointment.html",
+                appointment=updated,
+                barbers=sorted(ALLOWED_BARBERS),
+                csrf_token=session.get("admin_csrf_token"),
+                error=message
+            ), 400
+
+        if not all([name, phone, service, barber, date_text, time_text]):
+            return edit_error("Please complete all fields.")
+
+        if len(name) > 100 or len(phone) > 20:
+            return edit_error("Please check the name and phone number.")
+
+        if service not in SERVICE_DURATIONS:
+            return edit_error("Please select a valid service.")
+
+        if barber not in ALLOWED_BARBERS:
+            return edit_error("Please select a valid barber.")
+
+        try:
+            appointment_date = date.fromisoformat(date_text)
+            parsed_time = datetime.strptime(
+                time_text, "%H:%M"
+            ).time()
+
+            if appointment_date.isoformat() != date_text:
+                raise ValueError("Invalid date format")
+
+        except ValueError:
+            return edit_error(
+                "Please enter a valid appointment date and time."
+            )
+
+        now = datetime.now(SHOP_TIMEZONE)
+
+        start = datetime.combine(
+            appointment_date,
+            parsed_time,
+            tzinfo=SHOP_TIMEZONE
+        )
+
+        duration = SERVICE_DURATIONS[service]
+        end = start + timedelta(minutes=duration)
+
+        if start < now:
+            return edit_error(
+                "Please choose a future appointment time."
+            )
+
+        if (
+            parsed_time < OPENING_TIME
+            or end.date() != appointment_date
+            or end.time().replace(tzinfo=None) > CLOSING_TIME
+        ):
+            return edit_error(
+                "The appointment must start at or after 07:00 "
+                "and finish by 23:00."
+            )
+
+        existing_appointments = conn.execute(
+            f"""
+            SELECT service, time
+            FROM appointments
+            WHERE barber = {placeholder}
+              AND date = {placeholder}
+              AND id != {placeholder}
+            """,
+            (barber, date_text, appointment_id)
+        ).fetchall()
+
+        for existing in existing_appointments:
+            existing_time_text = str(existing["time"])[:5]
+
+            existing_start_time = datetime.strptime(
+                existing_time_text, "%H:%M"
+            ).time()
+
+            existing_start = datetime.combine(
+                appointment_date,
+                existing_start_time,
+                tzinfo=SHOP_TIMEZONE
+            )
+
+            existing_duration = SERVICE_DURATIONS.get(
+                existing["service"], 60
+            )
+
+            existing_end = existing_start + timedelta(
+                minutes=existing_duration
+            )
+
+            if start < existing_end and existing_start < end:
+                return edit_error(
+                    "That time is unavailable for this barber. "
+                    "Please choose another time."
+                )
+
+        result = conn.execute(
+            f"""
+            UPDATE appointments
+            SET name = {placeholder},
+                phone = {placeholder},
+                service = {placeholder},
+                barber = {placeholder},
+                date = {placeholder},
+                time = {placeholder}
+            WHERE id = {placeholder}
+              AND status IN ('Pending', 'Accepted')
+            """,
+            (
+                name,
+                phone,
+                service,
+                barber,
+                date_text,
+                time_text,
+                appointment_id
+            )
+        )
+
+        if result.rowcount != 1:
+            conn.rollback()
+            return "Appointment could not be updated.", 409
+
+        conn.commit()
+
+        session.pop("admin_csrf_token", None)
+
+        return redirect(url_for("admin"))
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Appointment editing failed.")
+        return "Could not update the appointment. Please try again.", 500
+
+    finally:
+        conn.close()
+
+
+# ==========================================
 # ADMIN LOGOUT
 # ==========================================
 

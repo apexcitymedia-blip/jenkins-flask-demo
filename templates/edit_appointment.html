@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#11110f">
+    <title>Edit Appointment | BarberBook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="booking-page">
+
+<nav class="navbar">
+    <a href="/" class="logo" aria-label="BarberBook home">
+        BARBER<span>BOOK</span><i>.</i>
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('admin') }}">Admin dashboard</a>
+        <a href="{{ url_for('admin') }}" class="nav-button">
+            BACK TO DASHBOARD <span>↗</span>
+        </a>
+    </div>
+</nav>
+
+<main class="booking-section">
+    <section class="booking-card" aria-labelledby="booking-title">
+
+        <a href="{{ url_for('admin') }}" class="booking-back">
+            ← Back to dashboard
+        </a>
+
+        <p class="eyebrow">
+            <span class="gold-line"></span>
+            APPOINTMENT MANAGEMENT
+        </p>
+
+        <h1 id="booking-title">Edit <span>appointment.</span></h1>
+
+        <p class="booking-description">
+            Update the customer's details or change their appointment.
+        </p>
+
+        <div class="booking-divider"></div>
+
+        {% if error %}
+        <div class="error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div class="form-heading">
+                <span>01</span>
+                <h2>Customer details</h2>
+            </div>
+
+            <label for="name">Full name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="{{ appointment['name'] }}"
+                maxlength="100"
+                required
+            >
+
+            <label for="phone">Phone number</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value="{{ appointment['phone'] or '' }}"
+                maxlength="20"
+                required
+            >
+
+            <div class="form-heading form-heading-spaced">
+                <span>02</span>
+                <h2>Appointment details</h2>
+            </div>
+
+            <label for="service">Choose service</label>
+            <select id="service" name="service" required>
+                <option value="Haircut"
+                    {% if appointment['service'] == 'Haircut' %}selected{% endif %}>
+                    The Haircut — €10
+                </option>
+                <option value="Beard Trim"
+                    {% if appointment['service'] == 'Beard Trim' %}selected{% endif %}>
+                    The Beard Trim — €5
+                </option>
+                <option value="Hair + Beard"
+                    {% if appointment['service'] == 'Hair + Beard' %}selected{% endif %}>
+                    The Complete — €15
+                </option>
+            </select>
+
+            <label for="barber">Choose barber</label>
+            <select id="barber" name="barber" required>
+                {% for barber in barbers %}
+                <option value="{{ barber }}"
+                    {% if appointment['barber'] == barber %}selected{% endif %}>
+                    {{ barber }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <div class="form-row">
+                <div>
+                    <label for="date">Appointment date</label>
+                    <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        value="{{ appointment['date'] }}"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label for="time">Appointment time</label>
+                    <input
+                        type="time"
+                        id="time"
+                        name="time"
+                        value="{{ appointment['time'][:5] }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <p class="booking-small-note">
+                The appointment must fit within opening hours and the
+                selected barber's availability.
+            </p>
+
+            <button type="submit" class="button full-width">
+                SAVE CHANGES <span>↗</span>
+            </button>
+
+            <p class="booking-privacy-note">
+                The appointment's current status will be preserved.
+            </p>
+        </form>
+    </section>
+</main>
+
+<footer class="footer booking-footer">
+    <a href="/" class="logo">BARBER<span>BOOK</span><i>.</i></a>
+    <p>Good grooming. No compromises.</p>
+    <p class="copyright">© 2026 BARBERBOOK. ALL RIGHTS RESERVED.</p>
+</footer>
+
+</body>
+</html>

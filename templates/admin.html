@@ -214,6 +214,7 @@
     <th>Customer</th>
                                 <th>Phone</th>
                                 <th>Service</th>
+                                <th>Barber</th>
                                 <th>Date</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -227,14 +228,7 @@
     data-service="{{ appointment['service']|e }}"
     data-date="{{ appointment['date']|e }}"
     data-status="{{ appointment['status']|e }}"
-data-paid-month="{{ (appointment['paid_at'] or '')[:7] }}">
-                                <td>
-    <input type="checkbox"
-           class="appointment-checkbox"
-           name="appointment_ids"
-           value="{{ appointment['id'] }}"
-           form="bulk-delete-form">
-</td>
+    data-paid-month="{{ (appointment['paid_at'] or '')[:7] }}">
 <td>{{ appointment["id"] }}</td>
                                 <td>{{ appointment["name"] }}</td>
                                 <td>
@@ -247,11 +241,16 @@ data-paid-month="{{ (appointment['paid_at'] or '')[:7] }}">
     {% endif %}
 </td>
                                 <td>{{ appointment["service"] }}</td>
+                                <td>{{ appointment["barber"] }}</td>
                                 <td>{{ appointment["date"] }}</td>
                                 <td>{{ appointment["status"] }}</td>
                                 <td>
                           {% if appointment["status"] == "Pending" %}
     <div class="action-buttons">
+        <a class="status-form"
+   href="{{ url_for('edit_appointment', appointment_id=appointment['id']) }}">
+    <button type="button">Edit</button>
+</a>
         <form class="status-form" method="post"
               action="{{ url_for('update_appointment_status', appointment_id=appointment['id']) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -268,6 +267,10 @@ data-paid-month="{{ (appointment['paid_at'] or '')[:7] }}">
     </div>
 
 {% elif appointment["status"] == "Accepted" %}
+<a class="status-form"
+   href="{{ url_for('edit_appointment', appointment_id=appointment['id']) }}">
+    <button type="button">Edit</button>
+</a>
     <form class="status-form" method="post"
           action="{{ url_for('mark_appointment_paid', appointment_id=appointment['id']) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
